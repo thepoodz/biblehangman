@@ -110,12 +110,13 @@
     }
 
     body.desktop-mode .puzzle-card {
-      padding: 1rem 1.5rem;
+      padding: 1.5rem 2rem;
       margin: 0 0.5rem 0.5rem 0.5rem;
       width: calc(100% - 1rem);
       max-width: 1400px;
       flex: 1;
       align-content: center;
+      justify-content: center;
       overflow: hidden;
       box-shadow: none;
       border: 1px solid rgba(255, 255, 255, 0.05);
@@ -204,14 +205,14 @@
       flex-wrap: wrap;
       gap: 0.8rem 0.4rem;
       justify-content: center;
-      line-height: calc(var(--box-h) + 0.2rem);
+      line-height: calc(var(--box-h) + 0.4rem);
       word-break: break-word;
     }
 
     .word-wrapper {
       display: inline-flex;
       flex-wrap: wrap;
-      margin-right: 0.8rem;
+      margin-right: calc(var(--box-w) * 0.4);
     }
 
     .letter-box {
@@ -222,20 +223,20 @@
       height: var(--box-h);
       font-size: var(--box-font);
       font-weight: bold;
-      border-bottom: 3px solid #555;
+      border-bottom: 4px solid #555;
       text-transform: uppercase;
-      margin: 0 1px;
+      margin: 0 2px;
     }
 
     .letter-box.revealed {
-      border-bottom: 3px solid var(--primary);
+      border-bottom: 4px solid var(--primary);
       color: var(--primary);
     }
 
     .letter-box.symbol {
       border-bottom: none;
       width: auto;
-      margin: 0 2px;
+      margin: 0 3px;
       font-weight: normal;
     }
 
@@ -548,7 +549,7 @@
 
   <div class="puzzle-card" id="puzzle"></div>
 
-  <!-- Fixed Bottom QWERTY Keyboard -->
+  <!-- Fixed Bottom QWERTY Keyboard Container -->
   <div class="keyboard-container" id="keyboard"></div>
 
   <!-- Settings Modal -->
@@ -799,22 +800,27 @@
 
       const length = currentVerse.text ? currentVerse.text.length : 0;
 
-      if (length < 45) {
-        puzzleCard.style.setProperty('--box-w', '3.8rem');
-        puzzleCard.style.setProperty('--box-h', '4.4rem');
-        puzzleCard.style.setProperty('--box-font', '2.4rem');
-      } else if (length < 90) {
-        puzzleCard.style.setProperty('--box-w', '2.8rem');
-        puzzleCard.style.setProperty('--box-h', '3.4rem');
-        puzzleCard.style.setProperty('--box-font', '1.8rem');
-      } else if (length < 140) {
-        puzzleCard.style.setProperty('--box-w', '2.2rem');
-        puzzleCard.style.setProperty('--box-h', '2.6rem');
-        puzzleCard.style.setProperty('--box-font', '1.4rem');
+      // Aggressive full-screen scaling for Desktop Mode
+      if (length < 35) {
+        puzzleCard.style.setProperty('--box-w', 'min(5.5rem, 6vw)');
+        puzzleCard.style.setProperty('--box-h', 'min(6.5rem, 12vh)');
+        puzzleCard.style.setProperty('--box-font', 'min(3.8rem, 8vh)');
+      } else if (length < 65) {
+        puzzleCard.style.setProperty('--box-w', 'min(4.2rem, 4.8vw)');
+        puzzleCard.style.setProperty('--box-h', 'min(5.0rem, 9.5vh)');
+        puzzleCard.style.setProperty('--box-font', 'min(2.8rem, 6.5vh)');
+      } else if (length < 110) {
+        puzzleCard.style.setProperty('--box-w', 'min(3.2rem, 3.8vw)');
+        puzzleCard.style.setProperty('--box-h', 'min(3.8rem, 7.5vh)');
+        puzzleCard.style.setProperty('--box-font', 'min(2.1rem, 5vh)');
+      } else if (length < 160) {
+        puzzleCard.style.setProperty('--box-w', 'min(2.4rem, 2.8vw)');
+        puzzleCard.style.setProperty('--box-h', 'min(2.9rem, 5.8vh)');
+        puzzleCard.style.setProperty('--box-font', 'min(1.5rem, 3.8vh)');
       } else {
-        puzzleCard.style.setProperty('--box-w', '1.6rem');
-        puzzleCard.style.setProperty('--box-h', '2.0rem');
-        puzzleCard.style.setProperty('--box-font', '1.1rem');
+        puzzleCard.style.setProperty('--box-w', 'min(1.8rem, 2vw)');
+        puzzleCard.style.setProperty('--box-h', 'min(2.2rem, 4.2vh)');
+        puzzleCard.style.setProperty('--box-font', 'min(1.2rem, 2.8vh)');
       }
     }
 
@@ -1013,6 +1019,12 @@
     window.onload = () => {
       initSettings();
       startNewGame();
+    };
+
+    window.onresize = () => {
+      if (document.body.classList.contains('desktop-mode')) {
+        updatePuzzleBoxSizes();
+      }
     };
   </script>
 </body>
