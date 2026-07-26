@@ -18,6 +18,7 @@
       --timer-bg: #e2e8f0;
       --stat-bg: #f1f5f9;
       --subtext: #64748b;
+      --star-empty: #cbd5e1;
     }
 
     /* Dark Mode Variable Overrides */
@@ -30,6 +31,7 @@
       --timer-bg: #334155;
       --stat-bg: #0f172a;
       --subtext: #94a3b8;
+      --star-empty: #475569;
     }
 
     body {
@@ -91,6 +93,14 @@
       font-size: 1.4rem;
       letter-spacing: 2px;
       height: 2rem;
+    }
+
+    .star-filled {
+      color: #ff9f1c;
+    }
+
+    .star-empty {
+      color: var(--star-empty);
     }
 
     .timer-display {
@@ -241,7 +251,7 @@
       right: 0;
       background-color: var(--keyboard-bg);
       padding: 10px 4px 15px 4px;
-      margin: 0 8px; /* Tweak: tiny margin on either side */
+      margin: 0 8px;
       border-radius: 12px 12px 0 0;
       box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
       display: flex;
@@ -373,14 +383,14 @@
     }
 
     .modal-verse-ref {
-      font-size: 1.5rem; /* Tweak: Verse reference bigger than verse itself */
+      font-size: 1.5rem;
       font-weight: bold;
       color: var(--primary);
       margin-bottom: 0.8rem;
     }
 
     .modal-verse-text {
-      font-size: 1.2rem; /* Tweak: Verse text slightly bigger */
+      font-size: 1.2rem;
       font-style: italic;
       color: var(--subtext);
       line-height: 1.5;
@@ -414,7 +424,7 @@
   
   <!-- Stars & Timer Bar -->
   <div class="status-header">
-    <div class="star-banner" id="star-banner">⭐⭐⭐⭐⭐</div>
+    <div class="star-banner" id="star-banner"></div>
     <div class="timer-display" id="timer-display">⏱️ 00:00</div>
   </div>
 
@@ -434,7 +444,7 @@
   <div class="modal-overlay" id="win-modal">
     <div class="modal-card">
       <div class="modal-title">🎉 Verse Solved!</div>
-      <div class="modal-stars" id="modal-stars">⭐⭐⭐⭐⭐</div>
+      <div class="modal-stars" id="modal-stars"></div>
       
       <div class="modal-stats">
         <div class="modal-stat-item">
@@ -561,9 +571,21 @@
       return Math.max(0, stars);
     }
 
+    function renderStarHTML(count) {
+      let html = '';
+      for (let i = 0; i < 5; i++) {
+        if (i < count) {
+          html += '<span class="star-filled">⭐</span>';
+        } else {
+          html += '<span class="star-empty">★</span>'; // Grey/empty star placeholder
+        }
+      }
+      return html;
+    }
+
     function updateStarDisplay() {
       const stars = calculateStars();
-      document.getElementById('star-banner').textContent = '⭐'.repeat(stars);
+      document.getElementById('star-banner').innerHTML = renderStarHTML(stars);
     }
 
     function resetActionBar() {
@@ -770,7 +792,6 @@
         document.getElementById('hint-btn').textContent = `📖 ${currentVerse.ref}`;
         
         const finalStars = calculateStars();
-        const starText = '⭐'.repeat(finalStars) || 'No Stars';
         const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
         const secs = String(secondsElapsed % 60).padStart(2, '0');
         const timeFormatted = `${mins}:${secs}`;
@@ -779,11 +800,11 @@
         const minutes = secondsElapsed / 60;
         const wpm = minutes > 0 ? (wordCount / minutes).toFixed(2) : (wordCount * 60).toFixed(2);
 
-        document.getElementById('modal-stars').textContent = starText;
+        document.getElementById('modal-stars').innerHTML = renderStarHTML(finalStars);
         document.getElementById('modal-time').textContent = timeFormatted;
         document.getElementById('modal-wpm').textContent = `${wpm} WPM`;
         document.getElementById('modal-verse-text').textContent = `"${currentVerse.text}"`;
-        document.getElementById('modal-verse-ref').textContent = currentVerse.ref; // Tweak: No leading dash
+        document.getElementById('modal-verse-ref').textContent = currentVerse.ref;
 
         setTimeout(() => {
           document.getElementById('win-modal').classList.add('active');
