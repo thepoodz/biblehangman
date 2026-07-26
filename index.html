@@ -25,17 +25,17 @@
 
     /* Dark Mode Variable Overrides */
     body.dark-mode {
-      --bg: #121824;
-      --card-bg: #1e293b;
+      --bg: #111111;              /* Very dark grey */
+      --card-bg: #161616;         /* Slightly lighter grey */
       --text: #f1f5f9;
-      --keyboard-bg: #1e293b;
-      --key-bg: #334155;
-      --stat-bg: #0f172a;
+      --keyboard-bg: #000000;     /* Jet black */
+      --key-bg: #161616;          /* Matching panel grey */
+      --stat-bg: #1f1f1f;
       --subtext: #94a3b8;
       --star-empty: #475569;
-      --btn-outline-border: #94a3b8;
+      --btn-outline-border: #475569;
       --btn-outline-text: #f1f5f9;
-      --timer-bg: #1e293b;
+      --timer-bg: #161616;
     }
 
     body {
@@ -133,7 +133,7 @@
       background: var(--card-bg);
       border-radius: 12px;
       padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       width: 100%;
       box-sizing: border-box;
       margin-bottom: 1.5rem;
@@ -159,7 +159,7 @@
       height: 2.2rem;
       font-size: 1.2rem;
       font-weight: bold;
-      border-bottom: 3px solid #ccc;
+      border-bottom: 3px solid #555;
       text-transform: uppercase;
       margin: 0 1px;
     }
@@ -219,7 +219,7 @@
       padding: 10px 4px 15px 4px;
       margin: 0 8px;
       border-radius: 12px 12px 0 0;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -248,12 +248,12 @@
       cursor: pointer;
       user-select: none;
       touch-action: manipulation;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
       text-align: center;
     }
 
     .key:disabled {
-      opacity: 0.4;
+      opacity: 0.3;
       cursor: not-allowed;
       box-shadow: none;
     }
@@ -261,11 +261,13 @@
     .key.correct {
       background: var(--success);
       color: white;
+      opacity: 1;
     }
 
     .key.wrong {
       background: var(--error);
       color: white;
+      opacity: 1;
     }
 
     /* Custom Win Modal Overlay */
@@ -275,7 +277,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.75);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -299,7 +301,7 @@
       max-width: 450px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       transform: scale(0.9);
       transition: transform 0.25s ease;
     }
@@ -400,7 +402,7 @@
   <div class="control-row" id="control-row">
     <div class="compact-box timer-box" id="timer-display">00:00</div>
     <button class="compact-box" id="hint-btn" onclick="toggleHint()">Hint</button>
-    <button class="compact-box" id="solve-btn" onclick="toggleSolveMode()">Solve</button>
+    <button class="compact-box" onclick="toggleSolveMode()">Solve</button>
     <button class="compact-box accent-box" onclick="startNewGame()">Next ➔</button>
     <button class="compact-box theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
   </div>
