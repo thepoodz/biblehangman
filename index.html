@@ -121,6 +121,13 @@
       gap: 0.8rem 0.4rem;
       justify-content: center;
       line-height: 2.2rem;
+      word-break: break-word; /* Prevents overflow on hyphenated words */
+    }
+
+    .word-wrapper {
+      display: inline-flex;
+      flex-wrap: wrap; /* Allows hyphenated words to break nicely across lines */
+      margin-right: 0.8rem;
     }
 
     .letter-box {
@@ -412,6 +419,7 @@
     // Timer Variables
     let secondsElapsed = 0;
     let timerInterval = null;
+    let timerStarted = false; // Flag to check if timer has started yet
 
     // QWERTY Layout
     const QWERTY_ROWS = [
@@ -426,7 +434,6 @@
         return;
       }
 
-      // Close Win Modal if open
       document.getElementById('win-modal').classList.remove('active');
 
       const randomIndex = Math.floor(Math.random() * VERSES.length);
@@ -439,24 +446,32 @@
       isSolveMode = false;
       gameWon = false;
       
+      // Reset timer variables
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerStarted = false;
+      secondsElapsed = 0;
+      updateTimerDisplay();
+
       document.getElementById('hint-btn').textContent = '💡 Hint';
       updateStarDisplay();
       resetActionBar();
       renderPuzzle();
       renderKeyboard();
-      startTimer();
       window.scrollTo(0, 0);
     }
 
-    function startTimer() {
-      clearInterval(timerInterval);
-      secondsElapsed = 0;
-      updateTimerDisplay();
-
-      timerInterval = setInterval(() => {
-        secondsElapsed++;
+    function ensureTimerStarted() {
+      if (!timerStarted) {
+        timerStarted = true;
+        secondsElapsed = 0;
         updateTimerDisplay();
-      }, 1000);
+
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          updateTimerDisplay();
+        }, 1000);
+      }
     }
 
     function stopTimer() {
@@ -506,6 +521,7 @@
 
     function toggleSolveMode() {
       if (gameWon) return;
+      ensureTimerStarted(); // Start timer when entering solve mode if not already started
       isSolveMode = true;
       
       const bar = document.getElementById('action-bar');
@@ -536,8 +552,7 @@
 
       words.forEach((word) => {
         const wordSpan = document.createElement('span');
-        wordSpan.style.display = 'inline-flex';
-        wordSpan.style.marginRight = '0.8rem';
+        wordSpan.className = 'word-wrapper';
 
         for (let char of word) {
           const upperChar = char.toUpperCase();
@@ -657,6 +672,8 @@
     function handleGuess(letter) {
       if (isSolveMode || gameWon || guessedLetters.has(letter)) return;
 
+      ensureTimerStarted(); // Start timer on first letter guess!
+
       guessedLetters.add(letter);
 
       if (!currentVerse.text.toUpperCase().includes(letter)) {
@@ -680,10 +697,8 @@
         gameWon = true;
         stopTimer();
         
-        // Update hint button text
         document.getElementById('hint-btn').textContent = `📖 ${currentVerse.ref}`;
         
-        // Final Score Stats
         const finalStars = calculateStars();
         const starText = '⭐'.repeat(finalStars) || 'No Stars';
         const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
@@ -694,14 +709,12 @@
         const minutes = secondsElapsed / 60;
         const wpm = minutes > 0 ? (wordCount / minutes).toFixed(2) : (wordCount * 60).toFixed(2);
 
-        // Populate Custom Modal
         document.getElementById('modal-stars').textContent = starText;
         document.getElementById('modal-time').textContent = timeFormatted;
         document.getElementById('modal-wpm').textContent = `${wpm} WPM`;
         document.getElementById('modal-verse-text').textContent = `"${currentVerse.text}"`;
         document.getElementById('modal-verse-ref').textContent = `— ${currentVerse.ref}`;
 
-        // Show Modal
         setTimeout(() => {
           document.getElementById('win-modal').classList.add('active');
         }, 300);
