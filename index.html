@@ -34,12 +34,28 @@
       color: var(--primary);
     }
 
-    /* Star Score Banner */
-    .star-banner {
-      font-size: 1.5rem;
+    /* Score & Timer Header Bar */
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
       margin-bottom: 0.8rem;
+    }
+
+    .star-banner {
+      font-size: 1.4rem;
       letter-spacing: 2px;
       height: 2rem;
+    }
+
+    .timer-display {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--primary);
+      background: #e2e8f0;
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      font-variant-numeric: tabular-nums;
     }
 
     /* Top Action Bar for Buttons & Hint */
@@ -227,10 +243,13 @@
 
   <h1>Bible Hangman</h1>
   
-  <!-- Live Star Rating Banner -->
-  <div class="star-banner" id="star-banner">⭐⭐⭐⭐⭐</div>
+  <!-- Stars & Timer Bar -->
+  <div class="status-header">
+    <div class="star-banner" id="star-banner">⭐⭐⭐⭐⭐</div>
+    <div class="timer-display" id="timer-display">⏱️ 00:00</div>
+  </div>
 
-  <!-- Buttons directly under score -->
+  <!-- Buttons directly under score/timer -->
   <div class="top-action-bar" id="action-bar">
     <button class="action-btn hint-btn" id="hint-btn" onclick="toggleHint()">💡 Hint</button>
     <button class="action-btn solve-btn" id="solve-btn" onclick="toggleSolveMode()">🔍 Solve</button>
@@ -253,6 +272,10 @@
     let hintPenaltyUsed = false;
     let wrongGuessesCount = 0;
     let isSolveMode = false;
+
+    // Timer Variables
+    let secondsElapsed = 0;
+    let timerInterval = null;
 
     // QWERTY Layout
     const QWERTY_ROWS = [
@@ -281,14 +304,36 @@
       resetActionBar();
       renderPuzzle();
       renderKeyboard();
+      startTimer();
       window.scrollTo(0, 0);
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      secondsElapsed = 0;
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function updateTimerDisplay() {
+      const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      const secs = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('timer-display').textContent = `⏱️ ${mins}:${secs}`;
     }
 
     function calculateStars() {
       let stars = 5;
       if (hintPenaltyUsed) stars -= 1;
       stars -= wrongGuessesCount;
-      return Math.max(0, stars); // Can't go below 0
+      return Math.max(0, stars);
     }
 
     function updateStarDisplay() {
@@ -310,7 +355,7 @@
       hintRevealed = !hintRevealed;
 
       if (hintRevealed) {
-        hintPenaltyUsed = true; // Deduct star for using hint
+        hintPenaltyUsed = true;
         hintBtn.textContent = `📖 ${currentVerse.ref}`;
       } else {
         hintBtn.textContent = '💡 Hint';
@@ -429,7 +474,7 @@
       });
 
       if (wrongInThisSubmit > 0) {
-        wrongGuessesCount += wrongInThisSubmit; // Deduct stars for wrong solve entries
+        wrongGuessesCount += wrongInThisSubmit;
         updateStarDisplay();
       }
 
@@ -477,7 +522,6 @@
 
       guessedLetters.add(letter);
 
-      // If guess was incorrect, penalize a star
       if (!currentVerse.text.toUpperCase().includes(letter)) {
         wrongGuessesCount++;
         updateStarDisplay();
@@ -496,12 +540,17 @@
       const isWon = [...requiredLetters].every(char => guessedLetters.has(char));
 
       if (isWon) {
+        stopTimer();
         document.getElementById('hint-btn').textContent = `📖 ${currentVerse.ref}`;
+        
         const finalStars = calculateStars();
         const starText = '⭐'.repeat(finalStars) || 'No stars this time!';
+        const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        const secs = String(secondsElapsed % 60).padStart(2, '0');
+        const timeFormatted = `${mins}:${secs}`;
         
         setTimeout(() => {
-          alert(`🎉 You solved it!\n\nScore: ${starText}\n\n"${currentVerse.text}" (${currentVerse.ref})`);
+          alert(`🎉 You solved it!\n\nScore: ${starText}\nTime: ${timeFormatted}\n\n"${currentVerse.text}" (${currentVerse.ref})`);
         }, 200);
       }
     }
