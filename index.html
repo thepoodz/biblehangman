@@ -17,7 +17,7 @@
       --key-bg: #ffffff;
       --stat-bg: #f1f5f9;
       --subtext: #64748b;
-      --title-color: #94a3b8;
+      --title-color: #000000; /* Pure black title for light mode */
       --star-empty: #cbd5e1;
       --btn-outline-border: #4a6fa5;
       --btn-outline-text: #4a6fa5;
@@ -36,7 +36,7 @@
       --key-bg: #161616;
       --stat-bg: #1f1f1f;
       --subtext: #94a3b8;
-      --title-color: #d1d5db;
+      --title-color: #d1d5db; /* Preserved light grey title for dark mode */
       --star-empty: #475569;
       --btn-outline-border: #475569;
       --btn-outline-text: #f1f5f9;
@@ -68,16 +68,30 @@
       justify-content: flex-start;
     }
 
+    /* Top Navigation Area in Desktop Mode (Title Left, Buttons Right) */
+    body.desktop-mode .top-nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 1600px;
+      margin-bottom: 0.4rem;
+      padding: 0 0.5rem;
+      box-sizing: border-box;
+    }
+
     body.desktop-mode .title-bar {
-      margin-bottom: 0.2rem;
+      margin-bottom: 0;
+      text-align: left;
     }
 
     body.desktop-mode h1 {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
     }
 
     body.desktop-mode .control-row {
-      margin-bottom: 0.4rem;
+      width: auto;
+      margin-bottom: 0;
       gap: 0.3rem;
     }
 
@@ -122,6 +136,14 @@
       box-shadow: none;
       border: 1px solid rgba(255, 255, 255, 0.05);
       gap: calc(var(--box-h) * 0.25) calc(var(--box-w) * 0.15);
+    }
+
+    /* Layout Container for Header Components */
+    .top-nav-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     /* Top Title Bar */
@@ -230,9 +252,10 @@
       margin: 0 2px;
     }
 
+    /* Revealed letters match the keyboard success green */
     .letter-box.revealed {
-      border-bottom: 4px solid var(--primary);
-      color: var(--primary);
+      border-bottom: 4px solid var(--success);
+      color: var(--success);
     }
 
     .letter-box.symbol {
@@ -555,20 +578,23 @@
 </head>
 <body>
 
-  <!-- Top Title Bar -->
-  <div class="title-bar">
-    <h1>Bible Hangman</h1>
-  </div>
-  
-  <!-- Unified Control Row -->
-  <div class="control-row" id="control-row">
-    <div class="compact-box timer-box" id="timer-display">00:00</div>
-    <button class="compact-box" id="hint-btn" onclick="toggleHint()">Hint</button>
-    <button class="compact-box" id="solve-btn" onclick="handleSolveOrResultsClick()">Solve</button>
-    <button class="compact-box" id="next-btn" onclick="startNewGame()">Next ➔</button>
-    <button class="compact-box submit-box hidden" id="submit-btn" onclick="submitSolve()">Submit</button>
-    <button class="compact-box cancel-box hidden" id="cancel-btn" onclick="cancelSolve()">Cancel</button>
-    <button class="compact-box settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+  <!-- Top Navigation Wrapper -->
+  <div class="top-nav-container">
+    <!-- Top Title Bar -->
+    <div class="title-bar">
+      <h1>Bible Hangman</h1>
+    </div>
+    
+    <!-- Unified Control Row -->
+    <div class="control-row" id="control-row">
+      <div class="compact-box timer-box" id="timer-display">00:00</div>
+      <button class="compact-box" id="hint-btn" onclick="toggleHint()">Hint</button>
+      <button class="compact-box" id="solve-btn" onclick="handleSolveOrResultsClick()">Solve</button>
+      <button class="compact-box" id="next-btn" onclick="startNewGame()">Next ➔</button>
+      <button class="compact-box submit-box hidden" id="submit-btn" onclick="submitSolve()">Submit</button>
+      <button class="compact-box cancel-box hidden" id="cancel-btn" onclick="cancelSolve()">Cancel</button>
+      <button class="compact-box settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+    </div>
   </div>
 
   <div class="puzzle-card" id="puzzle"></div>
@@ -791,7 +817,6 @@
 
     function handleSolveOrResultsClick() {
       if (gameWon) {
-        // Re-open the victory modal if verse is already solved
         document.getElementById('win-modal').classList.add('active');
       } else {
         toggleSolveMode();
@@ -1015,7 +1040,6 @@
         const hintBtn = document.getElementById('hint-btn');
         if (hintBtn) hintBtn.textContent = currentVerse.ref;
 
-        // Change "Solve" button to "See Results"
         const solveBtn = document.getElementById('solve-btn');
         if (solveBtn) solveBtn.textContent = 'See Results';
         
