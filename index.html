@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bible Verse Decoders</title>
+  <title>Bible Verse Decoder</title>
   <style>
     :root {
       --primary: #4a6fa5;
@@ -32,13 +32,28 @@
       color: var(--primary);
     }
 
+    /* Interactive Hint Badge */
     .reference-badge {
       background: var(--primary);
       color: white;
-      padding: 0.4rem 1rem;
+      padding: 0.5rem 1.2rem;
       border-radius: 20px;
       font-weight: bold;
       margin-bottom: 1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .reference-badge:hover {
+      background-color: #3b5984;
+    }
+
+    .reference-badge:active {
+      transform: scale(0.98);
     }
 
     .stats-bar {
@@ -145,7 +160,9 @@
 <body>
 
   <h1>Bible Verse Decoder</h1>
-  <div class="reference-badge" id="reference">Loading...</div>
+  
+  <!-- Clickable Hint Badge -->
+  <div class="reference-badge" id="reference" onclick="toggleHint()">💡 Hint: Click to reveal reference</div>
 
   <div class="stats-bar">
     <div>Rating: <span class="stars" id="stars">⭐⭐⭐⭐⭐</span></div>
@@ -158,7 +175,7 @@
 
   <button class="action-btn" id="next-btn" onclick="startNewGame()">Next Verse ➔</button>
 
-  <!-- Link external verses list -->
+  <!-- External Verses File -->
   <script src="verses.js"></script>
 
   <!-- Game Logic -->
@@ -166,25 +183,40 @@
     let currentVerse = {};
     let guessedLetters = new Set();
     let misses = 0;
+    let hintRevealed = false;
 
     function startNewGame() {
-      // Check if VERSES from verses.js exists
+      // Safety check for verses.js
       if (typeof VERSES === 'undefined' || VERSES.length === 0) {
         alert("Error: verses.js file not found or empty. Make sure verses.js is in the same folder!");
         return;
       }
 
-      // Pick a random verse from VERSES array
+      // Pick a random verse
       const randomIndex = Math.floor(Math.random() * VERSES.length);
       currentVerse = VERSES[randomIndex];
       
       guessedLetters.clear();
       misses = 0;
+      hintRevealed = false;
       
-      document.getElementById('reference').textContent = currentVerse.ref;
+      // Reset hint button state
+      document.getElementById('reference').textContent = '💡 Hint: Click to reveal reference';
+      
       updateStats();
       renderPuzzle();
       renderKeyboard();
+    }
+
+    function toggleHint() {
+      const badge = document.getElementById('reference');
+      hintRevealed = !hintRevealed;
+
+      if (hintRevealed) {
+        badge.textContent = `📖 ${currentVerse.ref}`;
+      } else {
+        badge.textContent = '💡 Hint: Click to reveal reference';
+      }
     }
 
     function renderPuzzle() {
@@ -211,7 +243,7 @@
               box.textContent = '';
             }
           } else {
-            // Punctuation and symbols are visible automatically
+            // Automatically show punctuation
             box.className = 'letter-box symbol';
             box.textContent = char;
           }
@@ -261,7 +293,7 @@
     function updateStats() {
       document.getElementById('misses').textContent = misses;
       
-      // Drop a star every 3 misses (Starts at 5 stars, minimum 1)
+      // Lose a star every 3 misses
       const starCount = Math.max(1, 5 - Math.floor(misses / 3));
       document.getElementById('stars').textContent = '⭐'.repeat(starCount);
     }
@@ -274,13 +306,16 @@
       const isWon = [...requiredLetters].every(char => guessedLetters.has(char));
 
       if (isWon) {
+        // Automatically reveal reference on win
+        document.getElementById('reference').textContent = `📖 ${currentVerse.ref}`;
+        
         setTimeout(() => {
           alert(`🎉 You solved it! Great job!\n\n"${currentVerse.text}" (${currentVerse.ref})`);
         }, 200);
       }
     }
 
-    // Start game when page loads
+    // Start game on page load
     window.onload = startNewGame;
   </script>
 </body>
