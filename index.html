@@ -364,7 +364,7 @@
       color: var(--text);
       border-radius: 20px;
       padding: 1.8rem 1.5rem;
-      max-width: 420px;
+      max-width: 440px;
       width: 100%;
       text-align: center;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
@@ -509,20 +509,42 @@
       margin-bottom: 1.5rem;
     }
 
+    /* Modal Dual Button Row */
+    .modal-button-row {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      width: 100%;
+    }
+
     .modal-play-btn {
       background: var(--accent);
       color: white;
       border: none;
-      padding: 0.8rem 2rem;
-      font-size: 1.1rem;
+      padding: 0.8rem 1.4rem;
+      font-size: 1.05rem;
       font-weight: bold;
       border-radius: 30px;
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(255, 159, 28, 0.4);
       transition: transform 0.1s ease, background-color 0.2s ease;
+      flex: 1;
     }
 
-    .modal-play-btn:active {
+    .modal-close-btn {
+      background: transparent;
+      color: var(--text);
+      border: 2px solid var(--btn-outline-border);
+      padding: 0.8rem 1.2rem;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: transform 0.1s ease, background-color 0.2s ease;
+      flex: 0.8;
+    }
+
+    .modal-play-btn:active, .modal-close-btn:active {
       transform: scale(0.96);
     }
 
@@ -542,7 +564,7 @@
   <div class="control-row" id="control-row">
     <div class="compact-box timer-box" id="timer-display">00:00</div>
     <button class="compact-box" id="hint-btn" onclick="toggleHint()">Hint</button>
-    <button class="compact-box" id="solve-btn" onclick="toggleSolveMode()">Solve</button>
+    <button class="compact-box" id="solve-btn" onclick="handleSolveOrResultsClick()">Solve</button>
     <button class="compact-box" id="next-btn" onclick="startNewGame()">Next ➔</button>
     <button class="compact-box submit-box hidden" id="submit-btn" onclick="submitSolve()">Submit</button>
     <button class="compact-box cancel-box hidden" id="cancel-btn" onclick="cancelSolve()">Cancel</button>
@@ -583,7 +605,7 @@
         </div>
       </div>
 
-      <button class="modal-play-btn" onclick="closeSettings()">Done</button>
+      <button class="modal-play-btn" style="width: 100%;" onclick="closeSettings()">Done</button>
     </div>
   </div>
 
@@ -607,7 +629,10 @@
       <div class="modal-verse-ref" id="modal-verse-ref">John 3:16</div>
       <div class="modal-verse-text" id="modal-verse-text">"For God so loved the world..."</div>
 
-      <button class="modal-play-btn" onclick="closeModalAndNext()">Play Next Verse ➔</button>
+      <div class="modal-button-row">
+        <button class="modal-close-btn" onclick="closeModalOnly()">✕ Close</button>
+        <button class="modal-play-btn" onclick="closeModalAndNext()">Play Next ➔</button>
+      </div>
     </div>
   </div>
 
@@ -694,6 +719,7 @@
       updateTimerDisplay();
 
       document.getElementById('hint-btn').textContent = 'Hint';
+      document.getElementById('solve-btn').textContent = 'Solve';
       resetControlRow();
       renderPuzzle();
       renderKeyboard();
@@ -763,6 +789,15 @@
       }
     }
 
+    function handleSolveOrResultsClick() {
+      if (gameWon) {
+        // Re-open the victory modal if verse is already solved
+        document.getElementById('win-modal').classList.add('active');
+      } else {
+        toggleSolveMode();
+      }
+    }
+
     function toggleSolveMode() {
       if (gameWon) return;
       ensureTimerStarted();
@@ -802,7 +837,6 @@
 
       const length = currentVerse.text ? currentVerse.text.length : 0;
 
-      // Unlocked maximum vertical scaling bounds for Desktop Mode
       if (length < 35) {
         puzzleCard.style.setProperty('--box-w', 'min(7.5rem, 8vw)');
         puzzleCard.style.setProperty('--box-h', 'min(9.0rem, 18vh)');
@@ -980,6 +1014,10 @@
         
         const hintBtn = document.getElementById('hint-btn');
         if (hintBtn) hintBtn.textContent = currentVerse.ref;
+
+        // Change "Solve" button to "See Results"
+        const solveBtn = document.getElementById('solve-btn');
+        if (solveBtn) solveBtn.textContent = 'See Results';
         
         const finalStars = calculateStars();
         const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
@@ -1000,6 +1038,10 @@
           document.getElementById('win-modal').classList.add('active');
         }, 300);
       }
+    }
+
+    function closeModalOnly() {
+      document.getElementById('win-modal').classList.remove('active');
     }
 
     function closeModalAndNext() {
