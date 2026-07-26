@@ -549,8 +549,13 @@
         const secs = String(secondsElapsed % 60).padStart(2, '0');
         const timeFormatted = `${mins}:${secs}`;
         
+        // Calculate WPM to 2 decimal places
+        const wordCount = currentVerse.text.split(' ').length;
+        const minutes = secondsElapsed / 60;
+        const wpm = minutes > 0 ? (wordCount / minutes).toFixed(2) : (wordCount * 60).toFixed(2);
+
         setTimeout(() => {
-          alert(`🎉 You solved it!\n\nScore: ${starText}\nTime: ${timeFormatted}\n\n"${currentVerse.text}" (${currentVerse.ref})`);
+          alert(`🎉 You solved it!\n\nScore: ${starText}\nTime: ${timeFormatted}\nSpeed: ${wpm} WPM\n\n"${currentVerse.text}" (${currentVerse.ref})`);
         }, 200);
       }
     }
