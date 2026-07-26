@@ -20,7 +20,7 @@
       color: var(--text);
       max-width: 800px;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 1rem 1rem 220px 1rem; /* Extra bottom padding so scrollable content isn't hidden by fixed keyboard */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -110,30 +110,50 @@
       font-weight: normal;
     }
 
-    .keyboard {
+    /* Fixed Bottom QWERTY Keyboard Container */
+    .keyboard-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #d1d5db;
+      padding: 10px 4px 15px 4px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 6px;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: 4px;
       justify-content: center;
+      width: 100%;
       max-width: 600px;
-      margin-bottom: 1.5rem;
     }
 
     .key {
-      background: #e0e0e0;
+      background: #ffffff;
       border: none;
       border-radius: 6px;
-      padding: 0.8rem 1rem;
+      padding: 0.8rem 0;
+      flex: 1;
+      max-width: 45px;
       font-size: 1.1rem;
       font-weight: bold;
       cursor: pointer;
       user-select: none;
       touch-action: manipulation;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
     }
 
     .key:disabled {
-      opacity: 0.3;
+      opacity: 0.4;
       cursor: not-allowed;
+      box-shadow: none;
     }
 
     .key.correct {
@@ -183,12 +203,13 @@
 
   <div class="puzzle-card" id="puzzle"></div>
 
-  <div class="keyboard" id="keyboard"></div>
-
   <div class="button-group">
     <button class="action-btn solve-btn" onclick="promptSolve()">🔍 Solve Verse</button>
     <button class="action-btn" id="next-btn" onclick="startNewGame()">Next Verse ➔</button>
   </div>
+
+  <!-- Fixed Bottom QWERTY Keyboard -->
+  <div class="keyboard-container" id="keyboard"></div>
 
   <!-- External Verses File -->
   <script src="verses.js"></script>
@@ -199,6 +220,13 @@
     let guessedLetters = new Set();
     let misses = 0;
     let hintRevealed = false;
+
+    // QWERTY Layout rows
+    const QWERTY_ROWS = [
+      ["Q","W","E","R","T","Y","U","I","O","P"],
+      ["A","S","D","F","G","H","J","K","L"],
+      ["Z","X","C","V","B","N","M"]
+    ];
 
     function startNewGame() {
       // Safety check for verses.js
@@ -221,6 +249,7 @@
       updateStats();
       renderPuzzle();
       renderKeyboard();
+      window.scrollTo(0, 0); // Scroll to top on new game
     }
 
     function toggleHint() {
@@ -273,21 +302,27 @@
       const keyboard = document.getElementById('keyboard');
       keyboard.innerHTML = '';
 
-      for (let i = 65; i <= 90; i++) {
-        const letter = String.fromCharCode(i);
-        const btn = document.createElement('button');
-        btn.className = 'key';
-        btn.textContent = letter;
+      QWERTY_ROWS.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'keyboard-row';
 
-        if (guessedLetters.has(letter)) {
-          btn.disabled = true;
-          const isCorrect = currentVerse.text.toUpperCase().includes(letter);
-          btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
+        row.forEach(letter => {
+          const btn = document.createElement('button');
+          btn.className = 'key';
+          btn.textContent = letter;
 
-        btn.onclick = () => handleGuess(letter);
-        keyboard.appendChild(btn);
-      }
+          if (guessedLetters.has(letter)) {
+            btn.disabled = true;
+            const isCorrect = currentVerse.text.toUpperCase().includes(letter);
+            btn.classList.add(isCorrect ? 'correct' : 'wrong');
+          }
+
+          btn.onclick = () => handleGuess(letter);
+          rowDiv.appendChild(btn);
+        });
+
+        keyboard.appendChild(rowDiv);
+      });
     }
 
     function handleGuess(letter) {
