@@ -196,6 +196,7 @@
     let currentVerse = {};
     let guessedLetters = new Set();
     let hintRevealed = false;
+    let isSolving = false; // Flag to prevent key presses while solve prompt is active
 
     // QWERTY Layout
     const QWERTY_ROWS = [
@@ -307,25 +308,30 @@
     }
 
     function promptSolve() {
-      const userGuess = prompt("Type what you think the full verse is:");
+      isSolving = true; // Pause physical keyboard inputs
       
-      if (!userGuess) return;
+      setTimeout(() => {
+        const userGuess = prompt("Type what you think the full verse is:");
+        isSolving = false; // Resume physical keyboard inputs
 
-      const cleanGuess = userGuess.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const cleanTarget = currentVerse.text.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!userGuess) return;
 
-      if (cleanGuess === cleanTarget) {
-        for (let char of currentVerse.text.toUpperCase()) {
-          if (/[A-Z]/.test(char)) {
-            guessedLetters.add(char);
+        const cleanGuess = userGuess.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const cleanTarget = currentVerse.text.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        if (cleanGuess === cleanTarget) {
+          for (let char of currentVerse.text.toUpperCase()) {
+            if (/[A-Z]/.test(char)) {
+              guessedLetters.add(char);
+            }
           }
+          renderPuzzle();
+          renderKeyboard();
+          checkWin();
+        } else {
+          alert("Not quite! Check for typos or keep guessing letters!");
         }
-        renderPuzzle();
-        renderKeyboard();
-        checkWin();
-      } else {
-        alert("Not quite! Check for typos or keep guessing letters!");
-      }
+      }, 50);
     }
 
     function checkWin() {
@@ -343,6 +349,17 @@
         }, 200);
       }
     }
+
+    // Physical Keyboard Support
+    window.addEventListener('keydown', (e) => {
+      if (isSolving) return; // Don't trigger letter guesses while using prompt input
+      if (e.ctrlKey || e.altKey || e.metaKey) return; // Ignore hotkeys like Cmd+R or Ctrl+C
+
+      const key = e.key.toUpperCase();
+      if (/^[A-Z]$/.test(key)) {
+        handleGuess(key);
+      }
+    });
 
     window.onload = startNewGame;
   </script>
