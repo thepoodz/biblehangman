@@ -237,6 +237,117 @@
       background: var(--error);
       color: white;
     }
+
+    /* Custom Win Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      transform: scale(0.9);
+      transition: transform 0.25s ease;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 2rem;
+      margin: 0 0 0.5rem 0;
+      color: var(--primary);
+    }
+
+    .modal-stars {
+      font-size: 2.2rem;
+      letter-spacing: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .modal-stats {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.2rem;
+      background: #f1f5f9;
+      padding: 0.8rem;
+      border-radius: 12px;
+    }
+
+    .modal-stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: bold;
+    }
+
+    .modal-stat-value {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .modal-verse-text {
+      font-size: 1.05rem;
+      font-style: italic;
+      color: #475569;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-verse-ref {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-play-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.9rem 2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(255, 159, 28, 0.4);
+      transition: transform 0.1s ease, background-color 0.2s ease;
+    }
+
+    .modal-play-btn:active {
+      transform: scale(0.96);
+    }
   </style>
 </head>
 <body>
@@ -261,6 +372,30 @@
   <!-- Fixed Bottom QWERTY Keyboard -->
   <div class="keyboard-container" id="keyboard"></div>
 
+  <!-- Custom Win Modal Overlay -->
+  <div class="modal-overlay" id="win-modal">
+    <div class="modal-card">
+      <div class="modal-title">🎉 Verse Solved!</div>
+      <div class="modal-stars" id="modal-stars">⭐⭐⭐⭐⭐</div>
+      
+      <div class="modal-stats">
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Time</span>
+          <span class="modal-stat-value" id="modal-time">00:00</span>
+        </div>
+        <div class="modal-stat-item">
+          <span class="modal-stat-label">Speed</span>
+          <span class="modal-stat-value" id="modal-wpm">0 WPM</span>
+        </div>
+      </div>
+
+      <div class="modal-verse-text" id="modal-verse-text">"For God so loved the world..."</div>
+      <div class="modal-verse-ref" id="modal-verse-ref">— John 3:16</div>
+
+      <button class="modal-play-btn" onclick="closeModalAndNext()">Play Next Verse ➔</button>
+    </div>
+  </div>
+
   <!-- External Verses File -->
   <script src="verses.js"></script>
 
@@ -272,6 +407,7 @@
     let hintPenaltyUsed = false;
     let wrongGuessesCount = 0;
     let isSolveMode = false;
+    let gameWon = false;
 
     // Timer Variables
     let secondsElapsed = 0;
@@ -290,6 +426,9 @@
         return;
       }
 
+      // Close Win Modal if open
+      document.getElementById('win-modal').classList.remove('active');
+
       const randomIndex = Math.floor(Math.random() * VERSES.length);
       currentVerse = VERSES[randomIndex];
       
@@ -298,6 +437,7 @@
       hintPenaltyUsed = false;
       wrongGuessesCount = 0;
       isSolveMode = false;
+      gameWon = false;
       
       document.getElementById('hint-btn').textContent = '💡 Hint';
       updateStarDisplay();
@@ -365,6 +505,7 @@
     }
 
     function toggleSolveMode() {
+      if (gameWon) return;
       isSolveMode = true;
       
       const bar = document.getElementById('action-bar');
@@ -483,10 +624,6 @@
       renderPuzzle();
       renderKeyboard();
 
-      if (wrongInThisSubmit > 0) {
-        alert(`Keep going! ${wrongInThisSubmit} letter(s) were incorrect.`);
-      }
-
       checkWin();
     }
 
@@ -518,7 +655,7 @@
     }
 
     function handleGuess(letter) {
-      if (isSolveMode || guessedLetters.has(letter)) return;
+      if (isSolveMode || gameWon || guessedLetters.has(letter)) return;
 
       guessedLetters.add(letter);
 
@@ -539,30 +676,46 @@
       
       const isWon = [...requiredLetters].every(char => guessedLetters.has(char));
 
-      if (isWon) {
+      if (isWon && !gameWon) {
+        gameWon = true;
         stopTimer();
+        
+        // Update hint button text
         document.getElementById('hint-btn').textContent = `📖 ${currentVerse.ref}`;
         
+        // Final Score Stats
         const finalStars = calculateStars();
-        const starText = '⭐'.repeat(finalStars) || 'No stars this time!';
+        const starText = '⭐'.repeat(finalStars) || 'No Stars';
         const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
         const secs = String(secondsElapsed % 60).padStart(2, '0');
         const timeFormatted = `${mins}:${secs}`;
         
-        // Calculate WPM to 2 decimal places
         const wordCount = currentVerse.text.split(' ').length;
         const minutes = secondsElapsed / 60;
         const wpm = minutes > 0 ? (wordCount / minutes).toFixed(2) : (wordCount * 60).toFixed(2);
 
+        // Populate Custom Modal
+        document.getElementById('modal-stars').textContent = starText;
+        document.getElementById('modal-time').textContent = timeFormatted;
+        document.getElementById('modal-wpm').textContent = `${wpm} WPM`;
+        document.getElementById('modal-verse-text').textContent = `"${currentVerse.text}"`;
+        document.getElementById('modal-verse-ref').textContent = `— ${currentVerse.ref}`;
+
+        // Show Modal
         setTimeout(() => {
-          alert(`🎉 You solved it!\n\nScore: ${starText}\nTime: ${timeFormatted}\nSpeed: ${wpm} WPM\n\n"${currentVerse.text}" (${currentVerse.ref})`);
-        }, 200);
+          document.getElementById('win-modal').classList.add('active');
+        }, 300);
       }
+    }
+
+    function closeModalAndNext() {
+      document.getElementById('win-modal').classList.remove('active');
+      startNewGame();
     }
 
     // Physical Keyboard Support
     window.addEventListener('keydown', (e) => {
-      if (isSolveMode) return;
+      if (isSolveMode || gameWon) return;
       if (e.ctrlKey || e.altKey || e.metaKey) return;
 
       const key = e.key.toUpperCase();
