@@ -13,6 +13,23 @@
       --bg: #f4f7f6;
       --card-bg: #ffffff;
       --text: #2b2d42;
+      --keyboard-bg: #d1d5db;
+      --key-bg: #ffffff;
+      --timer-bg: #e2e8f0;
+      --stat-bg: #f1f5f9;
+      --subtext: #64748b;
+    }
+
+    /* Dark Mode Variable Overrides */
+    body.dark-mode {
+      --bg: #121824;
+      --card-bg: #1e293b;
+      --text: #f1f5f9;
+      --keyboard-bg: #1e293b;
+      --key-bg: #334155;
+      --timer-bg: #334155;
+      --stat-bg: #0f172a;
+      --subtext: #94a3b8;
     }
 
     body {
@@ -27,11 +44,39 @@
       align-items: center;
       min-height: 100vh;
       box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 0.4rem;
     }
 
     h1 {
-      margin: 0.5rem 0 0.4rem 0;
+      margin: 0;
       color: var(--primary);
+    }
+
+    .theme-toggle-btn {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--text);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s ease;
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.9);
     }
 
     /* Score & Timer Header Bar */
@@ -52,7 +97,7 @@
       font-size: 1.2rem;
       font-weight: bold;
       color: var(--primary);
-      background: #e2e8f0;
+      background: var(--timer-bg);
       padding: 0.3rem 0.8rem;
       border-radius: 12px;
       font-variant-numeric: tabular-nums;
@@ -112,7 +157,7 @@
       background: var(--card-bg);
       border-radius: 12px;
       padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       width: 100%;
       box-sizing: border-box;
       margin-bottom: 1.5rem;
@@ -121,12 +166,12 @@
       gap: 0.8rem 0.4rem;
       justify-content: center;
       line-height: 2.2rem;
-      word-break: break-word; /* Prevents overflow on hyphenated words */
+      word-break: break-word;
     }
 
     .word-wrapper {
       display: inline-flex;
-      flex-wrap: wrap; /* Allows hyphenated words to break nicely across lines */
+      flex-wrap: wrap;
       margin-right: 0.8rem;
     }
 
@@ -166,7 +211,7 @@
       border: 2px solid var(--primary);
       border-radius: 4px;
       outline: none;
-      background: #fff;
+      background: var(--card-bg);
       color: var(--text);
       padding: 0;
       box-sizing: border-box;
@@ -174,7 +219,6 @@
 
     .solve-input:focus {
       border-color: var(--accent);
-      background: #fffdf9;
     }
 
     .solve-input.wrong-temp {
@@ -195,8 +239,10 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background-color: #d1d5db;
+      background-color: var(--keyboard-bg);
       padding: 10px 4px 15px 4px;
+      margin: 0 8px; /* Tweak: tiny margin on either side */
+      border-radius: 12px 12px 0 0;
       box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
       display: flex;
       flex-direction: column;
@@ -214,7 +260,8 @@
     }
 
     .key {
-      background: #ffffff;
+      background: var(--key-bg);
+      color: var(--text);
       border: none;
       border-radius: 6px;
       padding: 0.8rem 0;
@@ -270,6 +317,7 @@
 
     .modal-card {
       background: var(--card-bg);
+      color: var(--text);
       border-radius: 20px;
       padding: 2rem 1.5rem;
       max-width: 450px;
@@ -301,7 +349,7 @@
       justify-content: center;
       gap: 1.5rem;
       margin-bottom: 1.2rem;
-      background: #f1f5f9;
+      background: var(--stat-bg);
       padding: 0.8rem;
       border-radius: 12px;
     }
@@ -314,7 +362,7 @@
     .modal-stat-label {
       font-size: 0.75rem;
       text-transform: uppercase;
-      color: #64748b;
+      color: var(--subtext);
       font-weight: bold;
     }
 
@@ -324,18 +372,18 @@
       color: var(--text);
     }
 
-    .modal-verse-text {
-      font-size: 1.05rem;
-      font-style: italic;
-      color: #475569;
-      line-height: 1.5;
-      margin-bottom: 0.5rem;
-    }
-
     .modal-verse-ref {
-      font-size: 1rem;
+      font-size: 1.5rem; /* Tweak: Verse reference bigger than verse itself */
       font-weight: bold;
       color: var(--primary);
+      margin-bottom: 0.8rem;
+    }
+
+    .modal-verse-text {
+      font-size: 1.2rem; /* Tweak: Verse text slightly bigger */
+      font-style: italic;
+      color: var(--subtext);
+      line-height: 1.5;
       margin-bottom: 1.5rem;
     }
 
@@ -359,7 +407,10 @@
 </head>
 <body>
 
-  <h1>Bible Hangman</h1>
+  <div class="header-row">
+    <h1>Bible Hangman</h1>
+    <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+  </div>
   
   <!-- Stars & Timer Bar -->
   <div class="status-header">
@@ -396,8 +447,8 @@
         </div>
       </div>
 
+      <div class="modal-verse-ref" id="modal-verse-ref">John 3:16</div>
       <div class="modal-verse-text" id="modal-verse-text">"For God so loved the world..."</div>
-      <div class="modal-verse-ref" id="modal-verse-ref">— John 3:16</div>
 
       <button class="modal-play-btn" onclick="closeModalAndNext()">Play Next Verse ➔</button>
     </div>
@@ -419,7 +470,7 @@
     // Timer Variables
     let secondsElapsed = 0;
     let timerInterval = null;
-    let timerStarted = false; // Flag to check if timer has started yet
+    let timerStarted = false;
 
     // QWERTY Layout
     const QWERTY_ROWS = [
@@ -427,6 +478,26 @@
       ["A","S","D","F","G","H","J","K","L"],
       ["Z","X","C","V","B","N","M"]
     ];
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('hangman_theme');
+      const themeBtn = document.getElementById('theme-btn');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeBtn.textContent = '☀️';
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeBtn.textContent = '🌙';
+      }
+    }
+
+    function toggleTheme() {
+      const themeBtn = document.getElementById('theme-btn');
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      themeBtn.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('hangman_theme', isDark ? 'dark' : 'light');
+    }
 
     function startNewGame() {
       if (typeof VERSES === 'undefined' || VERSES.length === 0) {
@@ -446,7 +517,6 @@
       isSolveMode = false;
       gameWon = false;
       
-      // Reset timer variables
       clearInterval(timerInterval);
       timerInterval = null;
       timerStarted = false;
@@ -521,7 +591,7 @@
 
     function toggleSolveMode() {
       if (gameWon) return;
-      ensureTimerStarted(); // Start timer when entering solve mode if not already started
+      ensureTimerStarted();
       isSolveMode = true;
       
       const bar = document.getElementById('action-bar');
@@ -672,7 +742,7 @@
     function handleGuess(letter) {
       if (isSolveMode || gameWon || guessedLetters.has(letter)) return;
 
-      ensureTimerStarted(); // Start timer on first letter guess!
+      ensureTimerStarted();
 
       guessedLetters.add(letter);
 
@@ -713,7 +783,7 @@
         document.getElementById('modal-time').textContent = timeFormatted;
         document.getElementById('modal-wpm').textContent = `${wpm} WPM`;
         document.getElementById('modal-verse-text').textContent = `"${currentVerse.text}"`;
-        document.getElementById('modal-verse-ref').textContent = `— ${currentVerse.ref}`;
+        document.getElementById('modal-verse-ref').textContent = currentVerse.ref; // Tweak: No leading dash
 
         setTimeout(() => {
           document.getElementById('win-modal').classList.add('active');
@@ -737,7 +807,10 @@
       }
     });
 
-    window.onload = startNewGame;
+    window.onload = () => {
+      initTheme();
+      startNewGame();
+    };
   </script>
 </body>
 </html>
