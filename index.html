@@ -94,10 +94,6 @@
       font-weight: normal;
     }
 
-    .space {
-      width: 1rem;
-    }
-
     .keyboard {
       display: flex;
       flex-wrap: wrap;
@@ -162,19 +158,23 @@
 
   <button class="action-btn" id="next-btn" onclick="startNewGame()">Next Verse ➔</button>
 
-  <!-- Link to the external verses file -->
+  <!-- Link external verses list -->
   <script src="verses.js"></script>
 
   <!-- Game Logic -->
   <script>
-    // Remove the hardcoded const VERSES array here since it's now loaded from verses.js!
-    
     let currentVerse = {};
     let guessedLetters = new Set();
     let misses = 0;
 
     function startNewGame() {
-      // Pick a random verse from the VERSES array defined in verses.js
+      // Check if VERSES from verses.js exists
+      if (typeof VERSES === 'undefined' || VERSES.length === 0) {
+        alert("Error: verses.js file not found or empty. Make sure verses.js is in the same folder!");
+        return;
+      }
+
+      // Pick a random verse from VERSES array
       const randomIndex = Math.floor(Math.random() * VERSES.length);
       currentVerse = VERSES[randomIndex];
       
@@ -187,7 +187,101 @@
       renderKeyboard();
     }
 
-    // ... (rest of your game functions: renderPuzzle, renderKeyboard, etc.)
+    function renderPuzzle() {
+      const container = document.getElementById('puzzle');
+      container.innerHTML = '';
+
+      const words = currentVerse.text.split(' ');
+
+      words.forEach((word) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.style.display = 'inline-flex';
+        wordSpan.style.marginRight = '0.8rem';
+
+        for (let char of word) {
+          const box = document.createElement('span');
+          const upperChar = char.toUpperCase();
+
+          if (/[A-Z]/.test(upperChar)) {
+            box.className = 'letter-box';
+            if (guessedLetters.has(upperChar)) {
+              box.textContent = char; // Preserve original case
+              box.classList.add('revealed');
+            } else {
+              box.textContent = '';
+            }
+          } else {
+            // Punctuation and symbols are visible automatically
+            box.className = 'letter-box symbol';
+            box.textContent = char;
+          }
+          wordSpan.appendChild(box);
+        }
+
+        container.appendChild(wordSpan);
+      });
+    }
+
+    function renderKeyboard() {
+      const keyboard = document.getElementById('keyboard');
+      keyboard.innerHTML = '';
+
+      for (let i = 65; i <= 90; i++) {
+        const letter = String.fromCharCode(i);
+        const btn = document.createElement('button');
+        btn.className = 'key';
+        btn.textContent = letter;
+
+        if (guessedLetters.has(letter)) {
+          btn.disabled = true;
+          const isCorrect = currentVerse.text.toUpperCase().includes(letter);
+          btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        }
+
+        btn.onclick = () => handleGuess(letter);
+        keyboard.appendChild(btn);
+      }
+    }
+
+    function handleGuess(letter) {
+      if (guessedLetters.has(letter)) return;
+
+      guessedLetters.add(letter);
+
+      if (!currentVerse.text.toUpperCase().includes(letter)) {
+        misses++;
+      }
+
+      updateStats();
+      renderPuzzle();
+      renderKeyboard();
+      checkWin();
+    }
+
+    function updateStats() {
+      document.getElementById('misses').textContent = misses;
+      
+      // Drop a star every 3 misses (Starts at 5 stars, minimum 1)
+      const starCount = Math.max(1, 5 - Math.floor(misses / 3));
+      document.getElementById('stars').textContent = '⭐'.repeat(starCount);
+    }
+
+    function checkWin() {
+      const requiredLetters = new Set(
+        currentVerse.text.toUpperCase().replace(/[^A-Z]/g, '').split('')
+      );
+      
+      const isWon = [...requiredLetters].every(char => guessedLetters.has(char));
+
+      if (isWon) {
+        setTimeout(() => {
+          alert(`🎉 You solved it! Great job!\n\n"${currentVerse.text}" (${currentVerse.ref})`);
+        }, 200);
+      }
+    }
+
+    // Start game when page loads
+    window.onload = startNewGame;
   </script>
 </body>
 </html>
