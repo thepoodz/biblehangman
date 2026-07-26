@@ -8,6 +8,7 @@
     :root {
       --primary: #4a6fa5;
       --accent: #ff9f1c;
+      --success: #4caf50;
       --bg: #f4f7f6;
       --card-bg: #ffffff;
       --text: #2b2d42;
@@ -136,13 +137,20 @@
     }
 
     .key.correct {
-      background: #4caf50;
+      background: var(--success);
       color: white;
     }
 
     .key.wrong {
       background: #e57373;
       color: white;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .action-btn {
@@ -154,6 +162,10 @@
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
+    }
+
+    .action-btn.solve-btn {
+      background: var(--primary);
     }
   </style>
 </head>
@@ -173,7 +185,10 @@
 
   <div class="keyboard" id="keyboard"></div>
 
-  <button class="action-btn" id="next-btn" onclick="startNewGame()">Next Verse ➔</button>
+  <div class="button-group">
+    <button class="action-btn solve-btn" onclick="promptSolve()">🔍 Solve Verse</button>
+    <button class="action-btn" id="next-btn" onclick="startNewGame()">Next Verse ➔</button>
+  </div>
 
   <!-- External Verses File -->
   <script src="verses.js"></script>
@@ -288,6 +303,30 @@
       renderPuzzle();
       renderKeyboard();
       checkWin();
+    }
+
+    function promptSolve() {
+      const userGuess = prompt("Type what you think the full verse is:");
+      
+      if (!userGuess) return; // User cancelled
+
+      // Clean up string comparison (remove punctuation, extra spaces, lowercase)
+      const cleanGuess = userGuess.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanTarget = currentVerse.text.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      if (cleanGuess === cleanTarget) {
+        // Add all letters to guessed letters set
+        for (let char of currentVerse.text.toUpperCase()) {
+          if (/[A-Z]/.test(char)) {
+            guessedLetters.add(char);
+          }
+        }
+        renderPuzzle();
+        renderKeyboard();
+        checkWin();
+      } else {
+        alert("Not quite! Check for typos or keep guessing letters!");
+      }
     }
 
     function updateStats() {
