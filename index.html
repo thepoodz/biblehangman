@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bible Verse Decoders</title>
+  <style>
+    :root {
+      --primary: #4a6fa5;
+      --accent: #ff9f1c;
+      --bg: #f4f7f6;
+      --card-bg: #ffffff;
+      --text: #2b2d42;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin: 0.5rem 0 0.2rem 0;
+      color: var(--primary);
+    }
+
+    .reference-badge {
+      background: var(--primary);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+
+    .stars {
+      color: var(--accent);
+      font-size: 1.3rem;
+    }
+
+    .puzzle-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 0.4rem;
+      justify-content: center;
+      line-height: 2.2rem;
+    }
+
+    .letter-box {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 1.8rem;
+      height: 2.2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-bottom: 3px solid #ccc;
+      text-transform: uppercase;
+      margin: 0 1px;
+    }
+
+    .letter-box.revealed {
+      border-bottom: 3px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .letter-box.symbol {
+      border-bottom: none;
+      width: auto;
+      margin: 0 2px;
+      font-weight: normal;
+    }
+
+    .space {
+      width: 1rem;
+    }
+
+    .keyboard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      max-width: 600px;
+      margin-bottom: 1.5rem;
+    }
+
+    .key {
+      background: #e0e0e0;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .key:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .key.correct {
+      background: #4caf50;
+      color: white;
+    }
+
+    .key.wrong {
+      background: #e57373;
+      color: white;
+    }
+
+    .action-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Bible Verse Decoder</h1>
+  <div class="reference-badge" id="reference">Loading...</div>
+
+  <div class="stats-bar">
+    <div>Rating: <span class="stars" id="stars">⭐⭐⭐⭐⭐</span></div>
+    <div>Misses: <span id="misses">0</span></div>
+  </div>
+
+  <div class="puzzle-card" id="puzzle"></div>
+
+  <div class="keyboard" id="keyboard"></div>
+
+  <button class="action-btn" id="next-btn" onclick="startNewGame()">Next Verse ➔</button>
+
+  <script>
+    // Sample Verses - You can add all 250 here later!
+    const VERSES = [
+      { ref: "John 3:16", text: "For God so loved the world that he gave his one and only Son." },
+      { ref: "Psalm 23:1", text: "The Lord is my shepherd; I shall not want." },
+      { ref: "Philippians 4:13", text: "I can do all things through Christ who strengthens me." },
+      { ref: "Genesis 1:1", text: "In the beginning God created the heavens and the earth." },
+      { ref: "Proverbs 3:5", text: "Trust in the Lord with all your heart and lean not on your own understanding." }
+    ];
+
+    let currentVerse = {};
+    let guessedLetters = new Set();
+    let misses = 0;
+
+    function startNewGame() {
+      // Pick a random verse
+      const randomIndex = Math.floor(Math.random() * VERSES.length);
+      currentVerse = VERSES[randomIndex];
+      
+      guessedLetters.clear();
+      misses = 0;
+      
+      document.getElementById('reference').textContent = currentVerse.ref;
+      updateStats();
+      renderPuzzle();
+      renderKeyboard();
+    }
+
+    function renderPuzzle() {
+      const container = document.getElementById('puzzle');
+      container.innerHTML = '';
+
+      const words = currentVerse.text.split(' ');
+
+      words.forEach((word, wIdx) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.style.display = 'inline-flex';
+        wordSpan.style.marginRight = '0.8rem';
+
+        for (let char of word) {
+          const box = document.createElement('span');
+          const upperChar = char.toUpperCase();
+
+          if (/[A-Z]/.test(upperChar)) {
+            box.className = 'letter-box';
+            if (guessedLetters.has(upperChar)) {
+              box.textContent = char; // Preserve original casing
+              box.classList.add('revealed');
+            } else {
+              box.textContent = '';
+            }
+          } else {
+            // Punctuation automatically shows
+            box.className = 'letter-box symbol';
+            box.textContent = char;
+          }
+          wordSpan.appendChild(box);
+        }
+
+        container.appendChild(wordSpan);
+      });
+    }
+
+    function renderKeyboard() {
+      const keyboard = document.getElementById('keyboard');
+      keyboard.innerHTML = '';
+
+      for (let i = 65; i <= 90; i++) {
+        const letter = String.fromCharCode(i);
+        const btn = document.createElement('button');
+        btn.className = 'key';
+        btn.textContent = letter;
+
+        if (guessedLetters.has(letter)) {
+          btn.disabled = true;
+          const isCorrect = currentVerse.text.toUpperCase().includes(letter);
+          btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        }
+
+        btn.onclick = () => handleGuess(letter);
+        keyboard.appendChild(btn);
+      }
+    }
+
+    function handleGuess(letter) {
+      if (guessedLetters.has(letter)) return;
+
+      guessedLetters.add(letter);
+
+      if (!currentVerse.text.toUpperCase().includes(letter)) {
+        misses++;
+      }
+
+      updateStats();
+      renderPuzzle();
+      renderKeyboard();
+      checkWin();
+    }
+
+    function updateStats() {
+      document.getElementById('misses').textContent = misses;
+      
+      // Drop a star every 3 misses (Starts at 5, min 1)
+      const starCount = Math.max(1, 5 - Math.floor(misses / 3));
+      document.getElementById('stars').textContent = '⭐'.repeat(starCount);
+    }
+
+    function checkWin() {
+      const requiredLetters = new Set(
+        currentVerse.text.toUpperCase().replace(/[^A-Z]/g, '').split('')
+      );
+      
+      const isWon = [...requiredLetters].every(char => guessedLetters.has(char));
+
+      if (isWon) {
+        setTimeout(() => {
+          alert(`🎉 You solved it! Great job!\nVerse: "${currentVerse.text}"`);
+        }, 200);
+      }
+    }
+
+    // Start on load
+    startNewGame();
+  </script>
+</body>
+</html>
