@@ -9,6 +9,7 @@
       --primary: #4a6fa5;
       --accent: #ff9f1c;
       --success: #4caf50;
+      --error: #e57373;
       --bg: #f4f7f6;
       --card-bg: #ffffff;
       --text: #2b2d42;
@@ -20,7 +21,7 @@
       color: var(--text);
       max-width: 800px;
       margin: 0 auto;
-      padding: 1rem 1rem 220px 1rem; /* Padding for fixed keyboard */
+      padding: 1rem 1rem 220px 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -75,6 +76,14 @@
       background: var(--accent);
     }
 
+    .action-btn.submit-btn {
+      background: var(--success);
+    }
+
+    .action-btn.cancel-btn {
+      background: var(--error);
+    }
+
     .puzzle-card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -113,6 +122,40 @@
       width: auto;
       margin: 0 2px;
       font-weight: normal;
+    }
+
+    /* Editable Input Box for Solve Mode */
+    .solve-input {
+      width: 1.8rem;
+      height: 2.2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      border: 2px solid var(--primary);
+      border-radius: 4px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .solve-input:focus {
+      border-color: var(--accent);
+      background: #fffdf9;
+    }
+
+    .solve-input.wrong-temp {
+      border-color: var(--error);
+      background-color: #ffebee;
+      animation: shake 0.3s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
     }
 
     /* Fixed Bottom QWERTY Keyboard Container */
@@ -167,7 +210,7 @@
     }
 
     .key.wrong {
-      background: #e57373;
+      background: var(--error);
       color: white;
     }
   </style>
@@ -176,10 +219,10 @@
 
   <h1>Bible Hangman</h1>
   
-  <!-- Buttons directly under the title -->
-  <div class="top-action-bar">
+  <!-- Buttons directly under title -->
+  <div class="top-action-bar" id="action-bar">
     <button class="action-btn hint-btn" id="hint-btn" onclick="toggleHint()">💡 Hint</button>
-    <button class="action-btn solve-btn" onclick="promptSolve()">🔍 Solve</button>
+    <button class="action-btn solve-btn" id="solve-btn" onclick="toggleSolveMode()">🔍 Solve</button>
     <button class="action-btn next-btn" onclick="startNewGame()">Next ➔</button>
   </div>
 
@@ -196,7 +239,7 @@
     let currentVerse = {};
     let guessedLetters = new Set();
     let hintRevealed = false;
-    let isSolving = false; // Flag to prevent key presses while solve prompt is active
+    let isSolveMode = false;
 
     // QWERTY Layout
     const QWERTY_ROWS = [
@@ -216,13 +259,22 @@
       
       guessedLetters.clear();
       hintRevealed = false;
+      isSolveMode = false;
       
-      // Reset hint button text
       document.getElementById('hint-btn').textContent = '💡 Hint';
-      
+      resetActionBar();
       renderPuzzle();
       renderKeyboard();
       window.scrollTo(0, 0);
+    }
+
+    function resetActionBar() {
+      const bar = document.getElementById('action-bar');
+      bar.innerHTML = `
+        <button class="action-btn hint-btn" id="hint-btn" onclick="toggleHint()">${hintRevealed ? `📖 ${currentVerse.ref}` : '💡 Hint'}</button>
+        <button class="action-btn solve-btn" onclick="toggleSolveMode()">🔍 Solve</button>
+        <button class="action-btn next-btn" onclick="startNewGame()">Next ➔</button>
+      `;
     }
 
     function toggleHint() {
@@ -234,6 +286,31 @@
       } else {
         hintBtn.textContent = '💡 Hint';
       }
+    }
+
+    function toggleSolveMode() {
+      isSolveMode = true;
+      
+      // Update top action bar with Submit / Cancel buttons
+      const bar = document.getElementById('action-bar');
+      bar.innerHTML = `
+        <button class="action-btn submit-btn" onclick="submitSolve()">✅ Submit Answers</button>
+        <button class="action-btn cancel-btn" onclick="cancelSolve()">❌ Cancel</button>
+      `;
+
+      renderPuzzle();
+      
+      // Auto-focus the first empty solve input box
+      setTimeout(() => {
+        const firstInput = document.querySelector('.solve-input');
+        if (firstInput) firstInput.focus();
+      }, 50);
+    }
+
+    function cancelSolve() {
+      isSolveMode = false;
+      resetActionBar();
+      renderPuzzle();
     }
 
     function renderPuzzle() {
@@ -248,26 +325,99 @@
         wordSpan.style.marginRight = '0.8rem';
 
         for (let char of word) {
-          const box = document.createElement('span');
           const upperChar = char.toUpperCase();
 
           if (/[A-Z]/.test(upperChar)) {
-            box.className = 'letter-box';
             if (guessedLetters.has(upperChar)) {
+              // Standard revealed letter box
+              const box = document.createElement('span');
+              box.className = 'letter-box revealed';
               box.textContent = char;
-              box.classList.add('revealed');
+              wordSpan.appendChild(box);
+            } else if (isSolveMode) {
+              // Active input box during Solve Mode
+              const input = document.createElement('input');
+              input.type = 'text';
+              input.maxLength = 1;
+              input.className = 'solve-input';
+              input.dataset.targetChar = upperChar; // Store expected correct letter
+
+              // Auto-advance cursor to next blank input on typing
+              input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1) {
+                  const allInputs = Array.from(document.querySelectorAll('.solve-input'));
+                  const currentIndex = allInputs.indexOf(e.target);
+                  if (currentIndex < allInputs.length - 1) {
+                    allInputs[currentIndex + 1].focus();
+                  }
+                }
+              });
+
+              // Allow backspace to jump to previous blank input
+              input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value) {
+                  const allInputs = Array.from(document.querySelectorAll('.solve-input'));
+                  const currentIndex = allInputs.indexOf(e.target);
+                  if (currentIndex > 0) {
+                    allInputs[currentIndex - 1].focus();
+                  }
+                }
+              });
+
+              wordSpan.appendChild(input);
             } else {
+              // Standard hidden letter box
+              const box = document.createElement('span');
+              box.className = 'letter-box';
               box.textContent = '';
+              wordSpan.appendChild(box);
             }
           } else {
+            // Symbols and punctuation
+            const box = document.createElement('span');
             box.className = 'letter-box symbol';
             box.textContent = char;
+            wordSpan.appendChild(box);
           }
-          wordSpan.appendChild(box);
         }
 
         container.appendChild(wordSpan);
       });
+    }
+
+    function submitSolve() {
+      const inputs = document.querySelectorAll('.solve-input');
+      let wrongCount = 0;
+
+      inputs.forEach(input => {
+        const typedVal = input.value.toUpperCase();
+        const expectedVal = input.dataset.targetChar;
+
+        if (typedVal === expectedVal) {
+          // Correct guess! Reveal letter permanently
+          guessedLetters.add(expectedVal);
+        } else if (typedVal !== '') {
+          // Incorrect filled guess!
+          wrongCount++;
+          input.classList.add('wrong-temp');
+          setTimeout(() => {
+            input.value = '';
+            input.classList.remove('wrong-temp');
+          }, 800);
+        }
+      });
+
+      // Exit solve mode
+      isSolveMode = false;
+      resetActionBar();
+      renderPuzzle();
+      renderKeyboard();
+
+      if (wrongCount > 0) {
+        alert(`Keep going! ${wrongCount} filled letter(s) were incorrect and cleared.`);
+      }
+
+      checkWin();
     }
 
     function renderKeyboard() {
@@ -298,40 +448,13 @@
     }
 
     function handleGuess(letter) {
-      if (guessedLetters.has(letter)) return;
+      if (isSolveMode || guessedLetters.has(letter)) return;
 
       guessedLetters.add(letter);
 
       renderPuzzle();
       renderKeyboard();
       checkWin();
-    }
-
-    function promptSolve() {
-      isSolving = true; // Pause physical keyboard inputs
-      
-      setTimeout(() => {
-        const userGuess = prompt("Type what you think the full verse is:");
-        isSolving = false; // Resume physical keyboard inputs
-
-        if (!userGuess) return;
-
-        const cleanGuess = userGuess.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const cleanTarget = currentVerse.text.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-        if (cleanGuess === cleanTarget) {
-          for (let char of currentVerse.text.toUpperCase()) {
-            if (/[A-Z]/.test(char)) {
-              guessedLetters.add(char);
-            }
-          }
-          renderPuzzle();
-          renderKeyboard();
-          checkWin();
-        } else {
-          alert("Not quite! Check for typos or keep guessing letters!");
-        }
-      }, 50);
     }
 
     function checkWin() {
@@ -352,8 +475,8 @@
 
     // Physical Keyboard Support
     window.addEventListener('keydown', (e) => {
-      if (isSolving) return; // Don't trigger letter guesses while using prompt input
-      if (e.ctrlKey || e.altKey || e.metaKey) return; // Ignore hotkeys like Cmd+R or Ctrl+C
+      if (isSolveMode) return; // Inputs handle their own typing during solve mode
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
 
       const key = e.key.toUpperCase();
       if (/^[A-Z]$/.test(key)) {
