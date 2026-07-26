@@ -30,8 +30,16 @@
     }
 
     h1 {
-      margin: 0.5rem 0 0.8rem 0;
+      margin: 0.5rem 0 0.4rem 0;
       color: var(--primary);
+    }
+
+    /* Star Score Banner */
+    .star-banner {
+      font-size: 1.5rem;
+      margin-bottom: 0.8rem;
+      letter-spacing: 2px;
+      height: 2rem;
     }
 
     /* Top Action Bar for Buttons & Hint */
@@ -219,7 +227,10 @@
 
   <h1>Bible Hangman</h1>
   
-  <!-- Buttons directly under title -->
+  <!-- Live Star Rating Banner -->
+  <div class="star-banner" id="star-banner">⭐⭐⭐⭐⭐</div>
+
+  <!-- Buttons directly under score -->
   <div class="top-action-bar" id="action-bar">
     <button class="action-btn hint-btn" id="hint-btn" onclick="toggleHint()">💡 Hint</button>
     <button class="action-btn solve-btn" id="solve-btn" onclick="toggleSolveMode()">🔍 Solve</button>
@@ -239,6 +250,8 @@
     let currentVerse = {};
     let guessedLetters = new Set();
     let hintRevealed = false;
+    let hintPenaltyUsed = false;
+    let wrongGuessesCount = 0;
     let isSolveMode = false;
 
     // QWERTY Layout
@@ -259,13 +272,28 @@
       
       guessedLetters.clear();
       hintRevealed = false;
+      hintPenaltyUsed = false;
+      wrongGuessesCount = 0;
       isSolveMode = false;
       
       document.getElementById('hint-btn').textContent = '💡 Hint';
+      updateStarDisplay();
       resetActionBar();
       renderPuzzle();
       renderKeyboard();
       window.scrollTo(0, 0);
+    }
+
+    function calculateStars() {
+      let stars = 5;
+      if (hintPenaltyUsed) stars -= 1;
+      stars -= wrongGuessesCount;
+      return Math.max(0, stars); // Can't go below 0
+    }
+
+    function updateStarDisplay() {
+      const stars = calculateStars();
+      document.getElementById('star-banner').textContent = '⭐'.repeat(stars);
     }
 
     function resetActionBar() {
@@ -282,16 +310,18 @@
       hintRevealed = !hintRevealed;
 
       if (hintRevealed) {
+        hintPenaltyUsed = true; // Deduct star for using hint
         hintBtn.textContent = `📖 ${currentVerse.ref}`;
       } else {
         hintBtn.textContent = '💡 Hint';
       }
+
+      updateStarDisplay();
     }
 
     function toggleSolveMode() {
       isSolveMode = true;
       
-      // Update top action bar with Submit / Cancel buttons
       const bar = document.getElementById('action-bar');
       bar.innerHTML = `
         <button class="action-btn submit-btn" onclick="submitSolve()">✅ Submit Answers</button>
@@ -300,7 +330,6 @@
 
       renderPuzzle();
       
-      // Auto-focus the first empty solve input box
       setTimeout(() => {
         const firstInput = document.querySelector('.solve-input');
         if (firstInput) firstInput.focus();
@@ -329,20 +358,17 @@
 
           if (/[A-Z]/.test(upperChar)) {
             if (guessedLetters.has(upperChar)) {
-              // Standard revealed letter box
               const box = document.createElement('span');
               box.className = 'letter-box revealed';
               box.textContent = char;
               wordSpan.appendChild(box);
             } else if (isSolveMode) {
-              // Active input box during Solve Mode
               const input = document.createElement('input');
               input.type = 'text';
               input.maxLength = 1;
               input.className = 'solve-input';
-              input.dataset.targetChar = upperChar; // Store expected correct letter
+              input.dataset.targetChar = upperChar;
 
-              // Auto-advance cursor to next blank input on typing
               input.addEventListener('input', (e) => {
                 if (e.target.value.length === 1) {
                   const allInputs = Array.from(document.querySelectorAll('.solve-input'));
@@ -353,7 +379,6 @@
                 }
               });
 
-              // Allow backspace to jump to previous blank input
               input.addEventListener('keydown', (e) => {
                 if (e.key === 'Backspace' && !e.target.value) {
                   const allInputs = Array.from(document.querySelectorAll('.solve-input'));
@@ -366,14 +391,12 @@
 
               wordSpan.appendChild(input);
             } else {
-              // Standard hidden letter box
               const box = document.createElement('span');
               box.className = 'letter-box';
               box.textContent = '';
               wordSpan.appendChild(box);
             }
           } else {
-            // Symbols and punctuation
             const box = document.createElement('span');
             box.className = 'letter-box symbol';
             box.textContent = char;
@@ -387,18 +410,16 @@
 
     function submitSolve() {
       const inputs = document.querySelectorAll('.solve-input');
-      let wrongCount = 0;
+      let wrongInThisSubmit = 0;
 
       inputs.forEach(input => {
         const typedVal = input.value.toUpperCase();
         const expectedVal = input.dataset.targetChar;
 
         if (typedVal === expectedVal) {
-          // Correct guess! Reveal letter permanently
           guessedLetters.add(expectedVal);
         } else if (typedVal !== '') {
-          // Incorrect filled guess!
-          wrongCount++;
+          wrongInThisSubmit++;
           input.classList.add('wrong-temp');
           setTimeout(() => {
             input.value = '';
@@ -407,14 +428,18 @@
         }
       });
 
-      // Exit solve mode
+      if (wrongInThisSubmit > 0) {
+        wrongGuessesCount += wrongInThisSubmit; // Deduct stars for wrong solve entries
+        updateStarDisplay();
+      }
+
       isSolveMode = false;
       resetActionBar();
       renderPuzzle();
       renderKeyboard();
 
-      if (wrongCount > 0) {
-        alert(`Keep going! ${wrongCount} filled letter(s) were incorrect and cleared.`);
+      if (wrongInThisSubmit > 0) {
+        alert(`Keep going! ${wrongInThisSubmit} letter(s) were incorrect.`);
       }
 
       checkWin();
@@ -452,6 +477,12 @@
 
       guessedLetters.add(letter);
 
+      // If guess was incorrect, penalize a star
+      if (!currentVerse.text.toUpperCase().includes(letter)) {
+        wrongGuessesCount++;
+        updateStarDisplay();
+      }
+
       renderPuzzle();
       renderKeyboard();
       checkWin();
@@ -466,16 +497,18 @@
 
       if (isWon) {
         document.getElementById('hint-btn').textContent = `📖 ${currentVerse.ref}`;
+        const finalStars = calculateStars();
+        const starText = '⭐'.repeat(finalStars) || 'No stars this time!';
         
         setTimeout(() => {
-          alert(`🎉 You solved it! Great job!\n\n"${currentVerse.text}" (${currentVerse.ref})`);
+          alert(`🎉 You solved it!\n\nScore: ${starText}\n\n"${currentVerse.text}" (${currentVerse.ref})`);
         }, 200);
       }
     }
 
     // Physical Keyboard Support
     window.addEventListener('keydown', (e) => {
-      if (isSolveMode) return; // Inputs handle their own typing during solve mode
+      if (isSolveMode) return;
       if (e.ctrlKey || e.altKey || e.metaKey) return;
 
       const key = e.key.toUpperCase();
