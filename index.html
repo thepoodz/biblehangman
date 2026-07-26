@@ -17,6 +17,7 @@
       --key-bg: #ffffff;
       --stat-bg: #f1f5f9;
       --subtext: #64748b;
+      --title-color: #94a3b8; /* Light grey title for light mode */
       --star-empty: #cbd5e1;
       --btn-outline-border: #4a6fa5;
       --btn-outline-text: #4a6fa5;
@@ -35,6 +36,7 @@
       --key-bg: #161616;          /* Matching panel grey */
       --stat-bg: #1f1f1f;
       --subtext: #94a3b8;
+      --title-color: #d1d5db;     /* Light grey title for dark mode */
       --star-empty: #475569;
       --btn-outline-border: #475569;
       --btn-outline-text: #f1f5f9;
@@ -119,7 +121,8 @@
     h1 {
       margin: 0;
       font-size: 1.8rem;
-      color: var(--primary);
+      color: var(--title-color); /* Updated to Light Grey */
+      font-weight: 700;
     }
 
     /* Unified Control Bar Row */
@@ -153,12 +156,6 @@
 
     .compact-box:active {
       transform: scale(0.96);
-    }
-
-    .compact-box.accent-box {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #ffffff;
     }
 
     .compact-box.submit-box {
@@ -530,7 +527,7 @@
     <div class="compact-box timer-box" id="timer-display">00:00</div>
     <button class="compact-box" id="hint-btn" onclick="toggleHint()">Hint</button>
     <button class="compact-box" onclick="toggleSolveMode()">Solve</button>
-    <button class="compact-box accent-box" onclick="startNewGame()">Next ➔</button>
+    <button class="compact-box" onclick="startNewGame()">Next ➔</button>
     <button class="compact-box settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   </div>
 
@@ -733,7 +730,7 @@
         <div class="compact-box timer-box" id="timer-display">${String(Math.floor(secondsElapsed / 60)).padStart(2, '0')}:${String(secondsElapsed % 60).padStart(2, '0')}</div>
         <button class="compact-box" id="hint-btn" onclick="toggleHint()">${hintRevealed ? currentVerse.ref : 'Hint'}</button>
         <button class="compact-box" onclick="toggleSolveMode()">Solve</button>
-        <button class="compact-box accent-box" onclick="startNewGame()">Next ➔</button>
+        <button class="compact-box" onclick="startNewGame()">Next ➔</button>
         <button class="compact-box settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
       `;
     }
