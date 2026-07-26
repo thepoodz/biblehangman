@@ -15,10 +15,12 @@
       --text: #2b2d42;
       --keyboard-bg: #d1d5db;
       --key-bg: #ffffff;
-      --timer-bg: #e2e8f0;
       --stat-bg: #f1f5f9;
       --subtext: #64748b;
       --star-empty: #cbd5e1;
+      --btn-outline-border: #4a6fa5;
+      --btn-outline-text: #4a6fa5;
+      --timer-bg: #ffffff;
     }
 
     /* Dark Mode Variable Overrides */
@@ -28,10 +30,12 @@
       --text: #f1f5f9;
       --keyboard-bg: #1e293b;
       --key-bg: #334155;
-      --timer-bg: #334155;
       --stat-bg: #0f172a;
       --subtext: #94a3b8;
       --star-empty: #475569;
+      --btn-outline-border: #94a3b8;
+      --btn-outline-text: #f1f5f9;
+      --timer-bg: #1e293b;
     }
 
     body {
@@ -49,118 +53,80 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      margin-bottom: 0.4rem;
+    /* Top Title Bar */
+    .title-bar {
+      margin-bottom: 0.6rem;
+      text-align: center;
     }
 
     h1 {
       margin: 0;
+      font-size: 1.8rem;
       color: var(--primary);
     }
 
-    .theme-toggle-btn {
-      background: transparent;
-      border: 2px solid var(--primary);
-      color: var(--text);
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      font-size: 1.1rem;
-      cursor: pointer;
+    /* Unified Control Bar Row */
+    .control-row {
       display: flex;
+      gap: 0.4rem;
       align-items: center;
       justify-content: center;
-      transition: transform 0.1s ease;
-    }
-
-    .theme-toggle-btn:active {
-      transform: scale(0.9);
-    }
-
-    /* Score & Timer Header Bar */
-    .status-header {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .star-banner {
-      font-size: 1.4rem;
-      letter-spacing: 2px;
-      height: 2rem;
-    }
-
-    .star-filled {
-      color: #ff9f1c;
-    }
-
-    .star-empty {
-      color: var(--star-empty);
-    }
-
-    .timer-display {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--primary);
-      background: var(--timer-bg);
-      padding: 0.3rem 0.8rem;
-      border-radius: 12px;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Top Action Bar for Buttons & Hint */
-    .top-action-bar {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 1.5rem;
       width: 100%;
+      margin-bottom: 1.2rem;
+      flex-wrap: nowrap;
     }
 
-    .action-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      font-size: 0.95rem;
+    /* Outline Button & Box Styling */
+    .compact-box {
+      background: var(--card-bg);
+      border: 1.5px solid var(--btn-outline-border);
+      color: var(--btn-outline-text);
+      padding: 0.4rem 0.6rem;
+      font-size: 0.85rem;
       font-weight: bold;
-      border-radius: 20px;
+      border-radius: 8px;
       cursor: pointer;
       user-select: none;
-      transition: background-color 0.2s ease, transform 0.1s ease;
+      white-space: nowrap;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      transition: opacity 0.15s ease, transform 0.1s ease;
     }
 
-    .action-btn:active {
-      transform: scale(0.98);
+    .compact-box:active {
+      transform: scale(0.96);
     }
 
-    .action-btn.hint-btn {
-      background: var(--primary);
-    }
-
-    .action-btn.solve-btn {
-      background: #3b5984;
-    }
-
-    .action-btn.next-btn {
+    .compact-box.accent-box {
       background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
     }
 
-    .action-btn.submit-btn {
+    .compact-box.submit-box {
       background: var(--success);
+      border-color: var(--success);
+      color: #ffffff;
     }
 
-    .action-btn.cancel-btn {
+    .compact-box.cancel-box {
       background: var(--error);
+      border-color: var(--error);
+      color: #ffffff;
+    }
+
+    .timer-box {
+      cursor: default;
+      font-variant-numeric: tabular-nums;
+      background: var(--timer-bg);
+    }
+
+    .theme-toggle-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      font-size: 0.95rem;
     }
 
     .puzzle-card {
@@ -354,6 +320,14 @@
       margin-bottom: 1rem;
     }
 
+    .star-filled {
+      color: #ff9f1c;
+    }
+
+    .star-empty {
+      color: var(--star-empty);
+    }
+
     .modal-stats {
       display: flex;
       justify-content: center;
@@ -417,22 +391,18 @@
 </head>
 <body>
 
-  <div class="header-row">
+  <!-- Top Title Bar -->
+  <div class="title-bar">
     <h1>Bible Hangman</h1>
-    <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
   </div>
   
-  <!-- Stars & Timer Bar -->
-  <div class="status-header">
-    <div class="star-banner" id="star-banner"></div>
-    <div class="timer-display" id="timer-display">⏱️ 00:00</div>
-  </div>
-
-  <!-- Buttons directly under score/timer -->
-  <div class="top-action-bar" id="action-bar">
-    <button class="action-btn hint-btn" id="hint-btn" onclick="toggleHint()">💡 Hint</button>
-    <button class="action-btn solve-btn" id="solve-btn" onclick="toggleSolveMode()">🔍 Solve</button>
-    <button class="action-btn next-btn" onclick="startNewGame()">Next ➔</button>
+  <!-- Unified Control Row -->
+  <div class="control-row" id="control-row">
+    <div class="compact-box timer-box" id="timer-display">00:00</div>
+    <button class="compact-box" id="hint-btn" onclick="toggleHint()">Hint</button>
+    <button class="compact-box" id="solve-btn" onclick="toggleSolveMode()">Solve</button>
+    <button class="compact-box accent-box" onclick="startNewGame()">Next ➔</button>
+    <button class="compact-box theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
   </div>
 
   <div class="puzzle-card" id="puzzle"></div>
@@ -533,9 +503,8 @@
       secondsElapsed = 0;
       updateTimerDisplay();
 
-      document.getElementById('hint-btn').textContent = '💡 Hint';
-      updateStarDisplay();
-      resetActionBar();
+      document.getElementById('hint-btn').textContent = 'Hint';
+      resetControlRow();
       renderPuzzle();
       renderKeyboard();
       window.scrollTo(0, 0);
@@ -561,7 +530,7 @@
     function updateTimerDisplay() {
       const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
       const secs = String(secondsElapsed % 60).padStart(2, '0');
-      document.getElementById('timer-display').textContent = `⏱️ ${mins}:${secs}`;
+      document.getElementById('timer-display').textContent = `${mins}:${secs}`;
     }
 
     function calculateStars() {
@@ -577,23 +546,21 @@
         if (i < count) {
           html += '<span class="star-filled">⭐</span>';
         } else {
-          html += '<span class="star-empty">★</span>'; // Grey/empty star placeholder
+          html += '<span class="star-empty">★</span>';
         }
       }
       return html;
     }
 
-    function updateStarDisplay() {
-      const stars = calculateStars();
-      document.getElementById('star-banner').innerHTML = renderStarHTML(stars);
-    }
-
-    function resetActionBar() {
-      const bar = document.getElementById('action-bar');
-      bar.innerHTML = `
-        <button class="action-btn hint-btn" id="hint-btn" onclick="toggleHint()">${hintRevealed ? `📖 ${currentVerse.ref}` : '💡 Hint'}</button>
-        <button class="action-btn solve-btn" onclick="toggleSolveMode()">🔍 Solve</button>
-        <button class="action-btn next-btn" onclick="startNewGame()">Next ➔</button>
+    function resetControlRow() {
+      const row = document.getElementById('control-row');
+      const themeIcon = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+      row.innerHTML = `
+        <div class="compact-box timer-box" id="timer-display">${String(Math.floor(secondsElapsed / 60)).padStart(2, '0')}:${String(secondsElapsed % 60).padStart(2, '0')}</div>
+        <button class="compact-box" id="hint-btn" onclick="toggleHint()">${hintRevealed ? currentVerse.ref : 'Hint'}</button>
+        <button class="compact-box" onclick="toggleSolveMode()">Solve</button>
+        <button class="compact-box accent-box" onclick="startNewGame()">Next ➔</button>
+        <button class="compact-box theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">${themeIcon}</button>
       `;
     }
 
@@ -603,12 +570,10 @@
 
       if (hintRevealed) {
         hintPenaltyUsed = true;
-        hintBtn.textContent = `📖 ${currentVerse.ref}`;
+        hintBtn.textContent = currentVerse.ref;
       } else {
-        hintBtn.textContent = '💡 Hint';
+        hintBtn.textContent = 'Hint';
       }
-
-      updateStarDisplay();
     }
 
     function toggleSolveMode() {
@@ -616,10 +581,12 @@
       ensureTimerStarted();
       isSolveMode = true;
       
-      const bar = document.getElementById('action-bar');
-      bar.innerHTML = `
-        <button class="action-btn submit-btn" onclick="submitSolve()">✅ Submit Answers</button>
-        <button class="action-btn cancel-btn" onclick="cancelSolve()">❌ Cancel</button>
+      const row = document.getElementById('control-row');
+      const themeIcon = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+      row.innerHTML = `
+        <button class="compact-box submit-box" onclick="submitSolve()">Submit</button>
+        <button class="compact-box cancel-box" onclick="cancelSolve()">Cancel</button>
+        <button class="compact-box theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">${themeIcon}</button>
       `;
 
       renderPuzzle();
@@ -632,7 +599,7 @@
 
     function cancelSolve() {
       isSolveMode = false;
-      resetActionBar();
+      resetControlRow();
       renderPuzzle();
     }
 
@@ -723,11 +690,10 @@
 
       if (wrongInThisSubmit > 0) {
         wrongGuessesCount += wrongInThisSubmit;
-        updateStarDisplay();
       }
 
       isSolveMode = false;
-      resetActionBar();
+      resetControlRow();
       renderPuzzle();
       renderKeyboard();
 
@@ -770,7 +736,6 @@
 
       if (!currentVerse.text.toUpperCase().includes(letter)) {
         wrongGuessesCount++;
-        updateStarDisplay();
       }
 
       renderPuzzle();
@@ -789,7 +754,8 @@
         gameWon = true;
         stopTimer();
         
-        document.getElementById('hint-btn').textContent = `📖 ${currentVerse.ref}`;
+        const hintBtn = document.getElementById('hint-btn');
+        if (hintBtn) hintBtn.textContent = currentVerse.ref;
         
         const finalStars = calculateStars();
         const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
