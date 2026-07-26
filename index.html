@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bible Verse Decoder</title>
+  <title>Bible Hangman</title>
   <style>
     :root {
       --primary: #4a6fa5;
@@ -20,7 +20,7 @@
       color: var(--text);
       max-width: 800px;
       margin: 0 auto;
-      padding: 1rem 1rem 220px 1rem; /* Extra bottom padding so scrollable content isn't hidden by fixed keyboard */
+      padding: 1rem 1rem 220px 1rem; /* Padding for fixed keyboard */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -29,45 +29,50 @@
     }
 
     h1 {
-      margin: 0.5rem 0 0.2rem 0;
+      margin: 0.5rem 0 0.8rem 0;
       color: var(--primary);
     }
 
-    /* Interactive Hint Badge */
-    .reference-badge {
+    /* Top Action Bar for Buttons & Hint */
+    .top-action-bar {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    .action-btn {
       background: var(--primary);
       color: white;
-      padding: 0.5rem 1.2rem;
-      border-radius: 20px;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.95rem;
       font-weight: bold;
-      margin-bottom: 1rem;
+      border-radius: 20px;
       cursor: pointer;
       user-select: none;
       transition: background-color 0.2s ease, transform 0.1s ease;
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
     }
 
-    .reference-badge:hover {
-      background-color: #3b5984;
-    }
-
-    .reference-badge:active {
+    .action-btn:active {
       transform: scale(0.98);
     }
 
-    .stats-bar {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      font-size: 1.1rem;
+    .action-btn.hint-btn {
+      background: var(--primary);
     }
 
-    .stars {
-      color: var(--accent);
-      font-size: 1.3rem;
+    .action-btn.solve-btn {
+      background: #3b5984;
+    }
+
+    .action-btn.next-btn {
+      background: var(--accent);
     }
 
     .puzzle-card {
@@ -165,48 +170,20 @@
       background: #e57373;
       color: white;
     }
-
-    .button-group {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .action-btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .action-btn.solve-btn {
-      background: var(--primary);
-    }
   </style>
 </head>
 <body>
 
-  <h1>Bible Verse Decoder</h1>
+  <h1>Bible Hangman</h1>
   
-  <!-- Clickable Hint Badge -->
-  <div class="reference-badge" id="reference" onclick="toggleHint()">💡 Hint: Click to reveal reference</div>
-
-  <div class="stats-bar">
-    <div>Rating: <span class="stars" id="stars">⭐⭐⭐⭐⭐</span></div>
-    <div>Misses: <span id="misses">0</span></div>
+  <!-- Buttons directly under the title -->
+  <div class="top-action-bar">
+    <button class="action-btn hint-btn" id="hint-btn" onclick="toggleHint()">💡 Hint</button>
+    <button class="action-btn solve-btn" onclick="promptSolve()">🔍 Solve</button>
+    <button class="action-btn next-btn" onclick="startNewGame()">Next ➔</button>
   </div>
 
   <div class="puzzle-card" id="puzzle"></div>
-
-  <div class="button-group">
-    <button class="action-btn solve-btn" onclick="promptSolve()">🔍 Solve Verse</button>
-    <button class="action-btn" id="next-btn" onclick="startNewGame()">Next Verse ➔</button>
-  </div>
 
   <!-- Fixed Bottom QWERTY Keyboard -->
   <div class="keyboard-container" id="keyboard"></div>
@@ -218,10 +195,9 @@
   <script>
     let currentVerse = {};
     let guessedLetters = new Set();
-    let misses = 0;
     let hintRevealed = false;
 
-    // QWERTY Layout rows
+    // QWERTY Layout
     const QWERTY_ROWS = [
       ["Q","W","E","R","T","Y","U","I","O","P"],
       ["A","S","D","F","G","H","J","K","L"],
@@ -229,37 +205,33 @@
     ];
 
     function startNewGame() {
-      // Safety check for verses.js
       if (typeof VERSES === 'undefined' || VERSES.length === 0) {
         alert("Error: verses.js file not found or empty. Make sure verses.js is in the same folder!");
         return;
       }
 
-      // Pick a random verse
       const randomIndex = Math.floor(Math.random() * VERSES.length);
       currentVerse = VERSES[randomIndex];
       
       guessedLetters.clear();
-      misses = 0;
       hintRevealed = false;
       
-      // Reset hint button state
-      document.getElementById('reference').textContent = '💡 Hint: Click to reveal reference';
+      // Reset hint button text
+      document.getElementById('hint-btn').textContent = '💡 Hint';
       
-      updateStats();
       renderPuzzle();
       renderKeyboard();
-      window.scrollTo(0, 0); // Scroll to top on new game
+      window.scrollTo(0, 0);
     }
 
     function toggleHint() {
-      const badge = document.getElementById('reference');
+      const hintBtn = document.getElementById('hint-btn');
       hintRevealed = !hintRevealed;
 
       if (hintRevealed) {
-        badge.textContent = `📖 ${currentVerse.ref}`;
+        hintBtn.textContent = `📖 ${currentVerse.ref}`;
       } else {
-        badge.textContent = '💡 Hint: Click to reveal reference';
+        hintBtn.textContent = '💡 Hint';
       }
     }
 
@@ -281,13 +253,12 @@
           if (/[A-Z]/.test(upperChar)) {
             box.className = 'letter-box';
             if (guessedLetters.has(upperChar)) {
-              box.textContent = char; // Preserve original case
+              box.textContent = char;
               box.classList.add('revealed');
             } else {
               box.textContent = '';
             }
           } else {
-            // Automatically show punctuation
             box.className = 'letter-box symbol';
             box.textContent = char;
           }
@@ -330,11 +301,6 @@
 
       guessedLetters.add(letter);
 
-      if (!currentVerse.text.toUpperCase().includes(letter)) {
-        misses++;
-      }
-
-      updateStats();
       renderPuzzle();
       renderKeyboard();
       checkWin();
@@ -343,14 +309,12 @@
     function promptSolve() {
       const userGuess = prompt("Type what you think the full verse is:");
       
-      if (!userGuess) return; // User cancelled
+      if (!userGuess) return;
 
-      // Clean up string comparison (remove punctuation, extra spaces, lowercase)
       const cleanGuess = userGuess.toLowerCase().replace(/[^a-z0-9]/g, '');
       const cleanTarget = currentVerse.text.toLowerCase().replace(/[^a-z0-9]/g, '');
 
       if (cleanGuess === cleanTarget) {
-        // Add all letters to guessed letters set
         for (let char of currentVerse.text.toUpperCase()) {
           if (/[A-Z]/.test(char)) {
             guessedLetters.add(char);
@@ -364,14 +328,6 @@
       }
     }
 
-    function updateStats() {
-      document.getElementById('misses').textContent = misses;
-      
-      // Lose a star every 3 misses
-      const starCount = Math.max(1, 5 - Math.floor(misses / 3));
-      document.getElementById('stars').textContent = '⭐'.repeat(starCount);
-    }
-
     function checkWin() {
       const requiredLetters = new Set(
         currentVerse.text.toUpperCase().replace(/[^A-Z]/g, '').split('')
@@ -380,8 +336,7 @@
       const isWon = [...requiredLetters].every(char => guessedLetters.has(char));
 
       if (isWon) {
-        // Automatically reveal reference on win
-        document.getElementById('reference').textContent = `📖 ${currentVerse.ref}`;
+        document.getElementById('hint-btn').textContent = `📖 ${currentVerse.ref}`;
         
         setTimeout(() => {
           alert(`🎉 You solved it! Great job!\n\n"${currentVerse.text}" (${currentVerse.ref})`);
@@ -389,7 +344,6 @@
       }
     }
 
-    // Start game on page load
     window.onload = startNewGame;
   </script>
 </body>
