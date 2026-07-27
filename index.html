@@ -798,6 +798,7 @@
 
     function stopTimer() {
       clearInterval(timerInterval);
+      timerInterval = null;
     }
 
     function updateTimerDisplay() {
@@ -856,7 +857,10 @@
 
     function toggleSolveMode() {
       if (gameWon) return;
-      ensureTimerStarted();
+      
+      // Pause the timer so solving time doesn't penalize the player
+      stopTimer();
+
       isSolveMode = true;
       
       document.getElementById('timer-display').classList.add('hidden');
@@ -878,6 +882,14 @@
       isSolveMode = false;
       resetControlRow();
       renderPuzzle();
+
+      // Resume timer if it was active prior to entering solve mode
+      if (timerStarted) {
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          updateTimerDisplay();
+        }, 1000);
+      }
     }
 
     function updatePuzzleBoxSizes() {
