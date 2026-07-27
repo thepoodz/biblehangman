@@ -801,6 +801,15 @@
       timerInterval = null;
     }
 
+    function resumeTimer() {
+      if (timerStarted && !timerInterval) {
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          updateTimerDisplay();
+        }, 1000);
+      }
+    }
+
     function updateTimerDisplay() {
       const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
       const secs = String(secondsElapsed % 60).padStart(2, '0');
@@ -882,14 +891,7 @@
       isSolveMode = false;
       resetControlRow();
       renderPuzzle();
-
-      // Resume timer if it was active prior to entering solve mode
-      if (timerStarted) {
-        timerInterval = setInterval(() => {
-          secondsElapsed++;
-          updateTimerDisplay();
-        }, 1000);
-      }
+      resumeTimer();
     }
 
     function updatePuzzleBoxSizes() {
@@ -1024,6 +1026,11 @@
       renderKeyboard();
 
       checkWin();
+
+      // Resume timer if the attempt didn't win the game
+      if (!gameWon) {
+        resumeTimer();
+      }
     }
 
     function renderKeyboard() {
