@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bible Hangman</title>
+  
+  <!-- Google Cast SDK -->
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+
   <style>
     :root {
       --primary: #4a6fa5;
@@ -108,9 +112,10 @@
       border-radius: 6px;
     }
 
-    body.desktop-mode .settings-btn {
-      width: 24px;
-      height: 24px;
+    body.desktop-mode .settings-btn,
+    body.desktop-mode .cast-btn {
+      width: 28px;
+      height: 28px;
       font-size: 0.75rem;
     }
 
@@ -209,11 +214,19 @@
       background: var(--timer-bg);
     }
 
-    .settings-btn {
+    .settings-btn,
+    .cast-btn {
       width: 32px;
       height: 32px;
       padding: 0;
       font-size: 0.95rem;
+    }
+
+    /* Chromecast Web Component Styling Override */
+    google-cast-launcher {
+      --disconnected-color: var(--btn-outline-text);
+      --connected-color: var(--accent);
+      cursor: pointer;
     }
 
     .puzzle-card {
@@ -592,6 +605,10 @@
       <button class="compact-box" id="next-btn" onclick="startNewGame()">Next ➔</button>
       <button class="compact-box submit-box hidden" id="submit-btn" onclick="submitSolve()">Submit</button>
       <button class="compact-box cancel-box hidden" id="cancel-btn" onclick="cancelSolve()">Cancel</button>
+      
+      <!-- Chromecast Launcher Button -->
+      <button is="google-cast-launcher" class="compact-box cast-btn" title="Cast to TV"></button>
+      
       <button class="compact-box settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
   </div>
@@ -664,8 +681,18 @@
   <!-- External Verses File -->
   <script src="verses.js"></script>
 
-  <!-- Game Logic -->
+  <!-- Game Logic & Cast Initializer -->
   <script>
+    // Initialize Chromecast API
+    window.__onGCastApiAvailable = function(isAvailable) {
+      if (isAvailable) {
+        cast.framework.CastContext.getInstance().setOptions({
+          receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
+      }
+    };
+
     let currentVerse = {};
     let guessedLetters = new Set();
     let hintRevealed = false;
